@@ -290,7 +290,7 @@ pip install -r requirements.txt
    ```bash
    batteryml download MATR ./data/raw && batteryml preprocess MATR ./data/raw ./data/processed/MATR
    ```
-2. **Run the whole study** (about 25 min on a laptop CPU):
+2. **Run the whole study** (about 20 min on a laptop CPU):
    ```bash
    python run_all.py --data-dir ./data/processed/MATR
    ```
@@ -318,7 +318,9 @@ pip install -r requirements.txt
 | 7 | `scripts/07_make_report.py` | `results/tables/table*.csv`, `results/figures/`, `results/REPORT.md` |
 
 Committed results were produced with Python 3.12, the pinned `requirements.txt`, CPU only, on Windows 11.
-Seeds, folds and the tuning seed are fixed in `configs/default.yaml`.
+Seeds, folds and the tuning seed are fixed in `configs/default.yaml`. A from-scratch rerun of steps 1–7 into a
+separate folder (≈ 18 min) reproduced every committed metric, prediction, robustness and SHAP table and
+`REPORT.md` exactly. The only difference was < 0.001 cycles in the Gaussian-process baseline.
 
 ## Repository layout
 
