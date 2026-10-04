@@ -1,0 +1,3 @@
+variant,test_RMSE_vs_own_label,test_RMSE_vs_batteryml_label,train_CV_RMSE
+L0 legacy label (n recorded cycles),103.47898148047396,105.65398541844552,210.80936559586533
+L1 BatteryML label (80% SOH),104.5071759779585,104.5071759779585,207.6190791734329
