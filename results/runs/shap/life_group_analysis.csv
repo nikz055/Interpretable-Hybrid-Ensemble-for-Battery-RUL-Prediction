@@ -1,0 +1,4 @@
+group,n_cells,edges_from_train,RMSE,MAE,bias,top5
+short,11,"[487.6666666666667, 715.6666666666666]",33.8614687027202,31.59479773493489,26.02140255684494,"v_dis_avg_std, ir_min, dv_dis_avg, ce_slope, qd_curvature"
+medium,18,"[487.6666666666667, 715.6666666666666]",75.5464819361368,50.77712863686418,1.2488135452035687,"ir_ref, ce_slope, qd_resid_std_last10, ir_min, v_dis_avg_std"
+long,13,"[487.6666666666667, 715.6666666666666]",108.48743113247482,84.82128324536842,-42.5607385509512,"v_dis_avg_std, i_chg_std, dq_min_log, dq_var_log, dv_dis_avg"

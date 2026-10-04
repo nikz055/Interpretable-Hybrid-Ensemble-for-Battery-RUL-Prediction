@@ -1,0 +1,5 @@
+case,cell_id,true,pred,error,group,top_contributions
+correct_short_life,b2c30,481.0,496.64779754456345,15.647797544563446,short,"{""ir_min"": -0.0379, ""ir_ref"": -0.0325, ""t_chg_mean"": -0.0253, ""i_chg_mean"": -0.0206, ""temp_std"": -0.0169, ""qd_ref"": -0.0168, ""qc_ref"": -0.0164, ""qd_curvature"": -0.0155}"
+correct_long_life,b1c23,1014.0,1014.9532611081617,0.9532611081616551,long,"{""v_dis_avg_std"": 0.0563, ""i_chg_std"": 0.0435, ""dv_dis_avg"": 0.0351, ""qd_curvature"": 0.0343, ""dq_var_log"": 0.0332, ""dq_min_log"": 0.0305, ""dq_mean"": 0.0233, ""t_cv_mean"": 0.0227}"
+worst_underprediction,b2c47,713.0,473.57584315510104,-239.42415684489896,medium,"{""i_chg_std"": -0.0588, ""qd_ref"": -0.0561, ""qc_ref"": -0.0477, ""t_chg_mean"": -0.0471, ""v_dis_avg_std"": 0.0419, ""ce_slope"": -0.0388, ""ir_ref"": -0.0361, ""v_q50_last"": 0.0349}"
+worst_overprediction,b1c25,854.0,1007.5584307591232,153.5584307591232,long,"{""v_dis_avg_std"": 0.0598, ""dv_dis_avg"": 0.0514, ""i_chg_std"": 0.0484, ""t_cv_mean"": 0.0472, ""dq_min_log"": 0.0386, ""dq_var_log"": 0.0372, ""v_q90_last"": 0.0341, ""t_dis_mean"": 0.0327}"
