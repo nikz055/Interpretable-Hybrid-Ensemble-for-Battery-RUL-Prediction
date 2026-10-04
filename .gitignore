@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+# Raw/processed battery data and the derived signal cache are not redistributed
+data/
+*.pkl
+!results/**/*.pkl
+.venv/
+.vscode/
+.idea/
