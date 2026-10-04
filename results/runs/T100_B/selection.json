@@ -1,0 +1,22 @@
+{
+  "tag": "T100_B",
+  "best_individual_by_cv": "plsr",
+  "final_ensemble_by_cv": "stack_rf_xgb",
+  "cv_rmse": {
+    "dummy": 331.00282051208086,
+    "mean_rf_xgb": 224.12793873256823,
+    "mean_rf_xgb_mlp": 228.2470488729091,
+    "mlp": 246.5454030771315,
+    "plsr": 204.32879983548776,
+    "rf": 220.19856370971402,
+    "ridge": 212.7532185593613,
+    "stack_rf_mlp": 227.6881778661651,
+    "stack_rf_xgb": 228.26145352050057,
+    "stack_rf_xgb_mlp": 228.6992058531194,
+    "stack_ridge_rf_xgb_mlp": 223.084075081786,
+    "stack_xgb_mlp": 238.7236029425279,
+    "valweighted_rf_xgb_mlp": 227.03666482877142,
+    "xgb": 231.38844036733676
+  },
+  "runtime_s": 205.3
+}

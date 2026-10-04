@@ -1,0 +1,6 @@
+model,tuning_cv_rmse,params
+ridge,146.99050395613676,"{""alpha"": 3.1622776601683795}"
+plsr,145.568146640214,"{""n_components"": 4}"
+rf,168.77846486487226,"{""n_estimators"": 200, ""min_samples_leaf"": 1, ""max_features"": ""sqrt"", ""max_depth"": 8}"
+xgb,146.6954627230924,"{""subsample"": 0.6, ""reg_lambda"": 10.0, ""reg_alpha"": 0.1, ""n_estimators"": 800, ""min_child_weight"": 1, ""max_depth"": 3, ""learning_rate"": 0.05, ""colsample_bytree"": 0.5}"
+mlp,139.59566817616644,"{""learning_rate_init"": 0.01, ""hidden_layer_sizes"": [16], ""alpha"": 1.0}"
