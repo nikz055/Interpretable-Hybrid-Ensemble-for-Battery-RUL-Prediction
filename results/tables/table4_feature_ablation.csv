@@ -1,0 +1,16 @@
+Feature set,#features,Role,Model,Test RMSE,Test MAE,CV RMSE
+A,12,best individual (CV),plsr,141.0,86.6,207.1
+A,12,final ensemble (CV),stack_rf_xgb_mlp,128.2 ± 43.5,77.4 ± 18.8,227.5 ± 12.5
+A,12,RF,rf,171.7 ± 7.2,84.2 ± 2.9,234.1 ± 2.1
+A,12,XGBoost,xgb,134.7 ± 6.2,75.0 ± 3.3,227.9 ± 2.8
+A,12,Ridge,ridge,123.2,80.7,211.5
+B,30,best individual (CV),plsr,142.1,89.7,204.3
+B,30,final ensemble (CV),stack_rf_xgb,179.0 ± 10.2,104.9 ± 5.3,228.3 ± 3.5
+B,30,RF,rf,183.7 ± 5.6,101.2 ± 2.3,220.2 ± 1.4
+B,30,XGBoost,xgb,149.5 ± 16.7,86.4 ± 6.8,231.4 ± 6.8
+B,30,Ridge,ridge,152.0,90.5,212.8
+C,46,best individual (CV),plsr,113.9,73.7,206.9
+C,46,final ensemble (CV),stack_rf_xgb_mlp,120.4 ± 32.6,77.1 ± 14.7,225.8 ± 16.6
+C,46,RF,rf,166.4 ± 6.1,93.3 ± 2.2,220.9 ± 1.9
+C,46,XGBoost,xgb,151.1 ± 10.5,84.9 ± 4.8,225.2 ± 5.7
+C,46,Ridge,ridge,127.2,74.9,212.5

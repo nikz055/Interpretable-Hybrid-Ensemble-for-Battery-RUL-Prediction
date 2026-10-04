@@ -1,0 +1,12 @@
+Model,Features,Our RMSE,BatteryML published
+Dummy,expert,398.8,398
+Variance model,expert,136.1,136
+Discharge model,expert,329.0,329
+Full model,expert,166.8,167
+Ridge (QdLinear),QdLinear,115.8,116
+PCR (QdLinear),QdLinear,123.1,90
+PLSR (QdLinear),QdLinear,103.7,104
+Gaussian process (QdLinear),QdLinear,154.0,154
+XGBoost (QdLinear),QdLinear,333.7,334
+Random forest (QdLinear),QdLinear,173.5 ± 10.4,168±9
+MLP (QdLinear),QdLinear,-,149±3

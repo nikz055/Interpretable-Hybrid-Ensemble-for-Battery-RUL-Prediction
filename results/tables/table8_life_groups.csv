@@ -1,0 +1,19 @@
+Model,Group,n,RMSE,MAE,Bias
+Ridge,short,11,29.7,28.1,+11.6
+Ridge,medium,18,76.2,63.0,+28.2
+Ridge,long,13,208.5,131.0,-117.2
+Random forest,short,11,44.6,31.0,+27.1
+Random forest,medium,18,105.4,74.6,+35.9
+Random forest,long,13,268.4,171.6,-153.6
+XGBoost,short,11,47.3,37.4,+25.9
+XGBoost,medium,18,79.7,63.1,+22.2
+XGBoost,long,13,244.8,147.7,-118.0
+MLP,short,11,32.8,28.4,+24.5
+MLP,medium,18,71.1,52.3,-3.1
+MLP,long,13,129.2,96.7,-62.8
+Equal-weight RF+XGB+MLP,short,11,40.0,31.6,+25.8
+Equal-weight RF+XGB+MLP,medium,18,69.1,49.8,+18.3
+Equal-weight RF+XGB+MLP,long,13,211.1,134.1,-111.4
+Stack RF+XGB+MLP (proposed),short,11,52.0,46.5,+45.1
+Stack RF+XGB+MLP (proposed),medium,18,70.9,52.7,+29.6
+Stack RF+XGB+MLP (proposed),long,13,159.3,109.9,-68.2
