@@ -13,7 +13,11 @@ Steps
   4 experiments 1-4                                                       (features only)
   5 experiment 5 robustness                                               (needs cache)
   6 SHAP analysis                                                         (features only)
-  7 tables, figures, REPORT.md                                            (results only)
+  8 charging-protocol metadata                                            (needs data)
+  9 SHAP by horizon and mechanism group (early-warning study)             (features only)
+ 10 group ablation (drop-/only-group retraining)                          (features only)
+ 11 early-failure alarms, protocol effect, maintenance reports            (features only)
+  7 tables, figures, REPORT.md (runs last)                                (results only)
 """
 from __future__ import annotations
 
@@ -33,6 +37,10 @@ STEPS = [
     ("4", "scripts/04_run_experiments.py"),
     ("5", "scripts/05_robustness.py"),
     ("6", "scripts/06_shap.py"),
+    ("8", "scripts/08_protocols.py"),
+    ("9", "scripts/09_horizon_shap.py"),
+    ("10", "scripts/10_group_ablation.py"),
+    ("11", "scripts/11_early_warning.py"),
     ("7", "scripts/07_make_report.py"),
 ]
 
@@ -42,7 +50,7 @@ def main():
     ap.add_argument("--data-dir", default=None)
     ap.add_argument("--config", default=None)
     ap.add_argument("--jobs", type=int, default=3)
-    ap.add_argument("--from-step", default="0", help="0-7 (step 'a' runs with step 3)")
+    ap.add_argument("--from-step", default="0", help="0-11 (order: 0 1 2 3 a 4 5 6 8 9 10 11 7)")
     args = ap.parse_args()
     order = [s for s, _ in STEPS]
     start = order.index(args.from_step)
@@ -50,8 +58,8 @@ def main():
         cmd = [sys.executable, str(ROOT / script)]
         if args.config:
             cmd += ["--config", args.config]
-        if key == "0":
-            cmd += ["--jobs", str(args.jobs)] + (["--data-dir", args.data_dir] if args.data_dir else [])
+        if key in ("0", "8"):
+            cmd += (["--jobs", str(args.jobs)] if key == "0" else []) + (["--data-dir", args.data_dir] if args.data_dir else [])
         t0 = time.time()
         print(f"\n===== step {key}: {script}", flush=True)
         subprocess.run(cmd, check=True, cwd=ROOT)

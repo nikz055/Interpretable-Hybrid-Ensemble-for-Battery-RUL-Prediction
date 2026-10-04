@@ -1,0 +1,31 @@
+T,model,recall,precision,false-alarm rate,ROC-AUC,PR-AUC,OOF PR-AUC (selection)
+20,XGBoost,0.99,0.52,0.32,0.84,0.54,0.80
+20,Random forest,1.00,0.52,0.32,0.81,0.47,0.77
+20,Equal-weight RF+XGB+MLP,0.98,0.50,0.35,0.83,0.52,0.77
+20,Ridge,1.00,0.46,0.42,0.80,0.52,0.74
+20,PLSR,1.00,0.46,0.42,0.80,0.53,0.73
+20,Stack RF+XGB+MLP,0.91,0.46,0.39,0.80,0.51,0.71
+20,Logistic (protocol metadata only),1.00,0.32,0.74,0.81,0.65,0.64
+20,Logistic (all features),0.91,0.50,0.32,0.80,0.48,0.63
+20,MLP,0.92,0.39,0.55,0.78,0.49,0.63
+20,Logistic (degradation features only),0.91,0.48,0.35,0.82,0.56,0.63
+50,Equal-weight RF+XGB+MLP,0.78,0.56,0.23,0.86,0.64,0.82
+50,PLSR,0.91,0.62,0.19,0.91,0.79,0.82
+50,Ridge,0.91,0.62,0.19,0.92,0.81,0.81
+50,XGBoost,0.85,0.52,0.28,0.88,0.72,0.80
+50,Random forest,0.82,0.53,0.26,0.81,0.58,0.79
+50,MLP,0.89,0.53,0.30,0.85,0.62,0.78
+50,Stack RF+XGB+MLP,0.82,0.53,0.27,0.85,0.61,0.78
+50,Logistic (all features),0.64,0.58,0.16,0.87,0.69,0.72
+50,Logistic (degradation features only),0.64,0.58,0.16,0.86,0.68,0.70
+50,Logistic (protocol metadata only),1.00,0.32,0.74,0.81,0.65,0.64
+100,Ridge,1.00,0.65,0.19,0.96,0.87,0.76
+100,PLSR,1.00,0.61,0.23,0.94,0.82,0.74
+100,Random forest,0.90,0.58,0.24,0.91,0.74,0.72
+100,Logistic (all features),0.64,0.54,0.19,0.88,0.73,0.71
+100,Stack RF+XGB+MLP,0.93,0.56,0.27,0.91,0.72,0.71
+100,Equal-weight RF+XGB+MLP,0.88,0.60,0.22,0.92,0.77,0.68
+100,Logistic (degradation features only),0.82,0.60,0.19,0.87,0.67,0.68
+100,XGBoost,0.89,0.60,0.21,0.92,0.75,0.67
+100,MLP,0.95,0.50,0.35,0.89,0.67,0.67
+100,Logistic (protocol metadata only),1.00,0.32,0.74,0.81,0.65,0.64

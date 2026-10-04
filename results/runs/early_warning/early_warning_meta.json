@@ -1,0 +1,8 @@
+{
+  "early_failure_threshold_cycles": 487.664,
+  "target_recall_oof": 0.9,
+  "n_test_early_failures": 11,
+  "n_train_early_failures": 14,
+  "report_horizon": 50,
+  "maintenance_model_selected_by_oof_PR_AUC": "mean_rf_xgb_mlp"
+}

@@ -34,6 +34,8 @@ PRETTY = {
     "stack_rf_xgb": "Stack RF+XGB", "stack_rf_mlp": "Stack RF+MLP", "stack_xgb_mlp": "Stack XGB+MLP",
     "stack_rf_xgb_mlp": "Stack RF+XGB+MLP (proposed)",
     "stack_ridge_rf_xgb_mlp": "Stack Ridge+RF+XGB+MLP (exploratory)",
+    "logit_all": "Logistic (all features)", "logit_degradation": "Logistic (degradation features only)",
+    "logit_protocol": "Logistic (protocol metadata only)",
 }
 MAIN_ORDER = ["dummy", "ridge", "plsr", "rf", "xgb", "mlp", "mean_rf_xgb_mlp",
               "valweighted_rf_xgb_mlp", "stack_rf_xgb_mlp", "stack_ridge_rf_xgb_mlp"]
@@ -58,6 +60,77 @@ def pred_matrix(preds, model, part="test"):
     P = g.pivot(index="seed", columns="cell_id", values="y_pred")
     y = g.drop_duplicates("cell_id").set_index("cell_id").y_true
     return P, y.loc[P.columns]
+
+
+def early_warning_sections(res: Path, tabs: Path) -> list[str]:
+    """Tables 9-12: the early-warning / interpretability study (steps 8-11)."""
+    ew = res / "runs" / "early_warning"
+    if not (ew / "group_importance_by_horizon.csv").exists():
+        return []
+    from batteryrul.features.groups import GROUP_LABEL
+    out = ["# Early-warning interpretability study (steps 8-11)\n"]
+    g = pd.read_csv(ew / "group_importance_by_horizon.csv")
+    t9 = g.pivot(index="group", columns="T", values="consensus_share")
+    t9 = t9.loc[t9.mean(1).sort_values(ascending=False).index]
+    sd = g.pivot(index="group", columns="T", values="between_model_std").loc[t9.index]
+    t9f = pd.DataFrame({f"T={T}": [f"{a:.2f} ± {b:.2f}" for a, b in zip(t9[T], sd[T])] for T in t9.columns},
+                       index=[GROUP_LABEL[i] for i in t9.index]).reset_index().rename(columns={"index": "Mechanism group"})
+    t9f.to_csv(tabs / "table9_group_importance_by_horizon.csv", index=False)
+    out += ["## Table 9 - Share of SHAP attribution by mechanism group and cycles observed\n",
+            "Consensus = mean over PLSR, RF, XGBoost and MLP of each model's share of total |group SHAP| on held-out cells "
+            "(10 seeds + 5 CV folds); ± = spread between models.\n", md_table(t9f), ""]
+
+    s = pd.read_csv(ew / "feature_stability_by_horizon.csv")
+    rows = []
+    for T, d in s.groupby("T"):
+        for _, r in d.nsmallest(6, "rank").iterrows():
+            rows.append({"T": T, "rank": int(r["rank"]), "feature": r.feature, "group": GROUP_LABEL[r.group],
+                         "share": f"{r.consensus_share:.3f}", "top-10 frequency": f"{r.top10_frequency:.2f}",
+                         "learned sign": f"{r.learned_sign_majority} ({r.sign_agreement_models})",
+                         "expected": r.expected_sign, "plausibility": r.plausibility})
+    t10 = pd.DataFrame(rows)
+    t10.to_csv(tabs / "table10_top_features_by_horizon.csv", index=False)
+    out += ["## Table 10 - Top features by horizon (consensus)\n",
+            "top-10 frequency = fraction of all 51 explanation runs (PLSR 6, RF/XGB/MLP 15 each) in which the feature is top-10; "
+            "learned sign = majority sign of Spearman(feature value, SHAP) across models.\n", md_table(t10), ""]
+
+    a = pd.read_csv(ew / "group_ablation_consensus.csv")
+    keep = ["full", "degradation_only", "protocol_metadata_only"] + sorted(c for c in a.config.unique() if c.startswith(("drop:", "only:")))
+    a = a[a.config.isin(keep)]
+    t11 = a.pivot(index="config", columns="T", values="cv_mae").round(1)
+    d11 = a.pivot(index="config", columns="T", values="d_cv_mae").round(1)
+    t11f = pd.DataFrame({f"T={T} CV MAE (Δ)": [f"{v:.1f} ({d:+.1f})" for v, d in zip(t11[T], d11[T])] for T in t11.columns},
+                        index=t11.index).loc[[k for k in keep if k in t11.index]].reset_index()
+    t11f.to_csv(tabs / "table11_group_ablation.csv", index=False)
+    out += ["## Table 11 - Group ablation: retrain without / with only each group (grouped CV on training cells)\n",
+            "Mean over PLSR, RF, XGBoost (3 seeds for RF/XGB). Δ = change vs. all features; positive Δ for drop:<group> "
+            "means the group carries information the others cannot replace.\n", md_table(t11f), ""]
+
+    w = pd.read_csv(ew / "early_warning_summary.csv")
+    meta = json.loads((ew / "early_warning_meta.json").read_text())
+    rows = []
+    for _, r in w.sort_values(["T", "oof_PR_AUC_mean"], ascending=[True, False]).iterrows():
+        rows.append({"T": int(r["T"]), "model": PRETTY.get(r.model, r.model).replace(" (proposed)", ""),
+                     "recall": f"{r.recall_mean:.2f}", "precision": f"{r.precision_mean:.2f}",
+                     "false-alarm rate": f"{r.false_alarm_rate_mean:.2f}", "ROC-AUC": f"{r.ROC_AUC_mean:.2f}",
+                     "PR-AUC": f"{r.PR_AUC_mean:.2f}", "OOF PR-AUC (selection)": f"{r.oof_PR_AUC_mean:.2f}"})
+    t12 = pd.DataFrame(rows)
+    t12.to_csv(tabs / "table12_early_warning.csv", index=False)
+    out += [f"## Table 12 - Early-failure alarms (early failure = life ≤ {meta['early_failure_threshold_cycles']:.0f} cycles; "
+            f"{meta['n_test_early_failures']}/42 test cells)\n",
+            f"Alarm cutoffs set on OOF predictions of training cells for ≥ {meta['target_recall_oof']:.0%} recall; "
+            f"no-skill PR-AUC = {meta['n_test_early_failures'] / 42:.2f}. Maintenance model at T={meta['report_horizon']} "
+            f"chosen by OOF PR-AUC: {meta['maintenance_model_selected_by_oof_PR_AUC']}.\n", md_table(t12), ""]
+
+    p = pd.read_csv(ew / "protocol_seen_unseen.csv")
+    p = p[p.model.isin(["plsr", "mlp", "stack_rf_xgb_mlp", "protocol_lookup"])].round(1)
+    out += ["## Protocol seen vs. unseen in training (test cells)\n",
+            "`*_life<=1100` removes the four very long-lived 3.6C/4C cells that confound the raw comparison.\n",
+            md_table(p), ""]
+    r = pd.read_csv(ew / f"maintenance_report_T{meta['report_horizon']}.csv")
+    out += [f"## Maintenance report after {meta['report_horizon']} cycles (alarmed cells first)\n",
+            md_table(r.drop(columns=["alarm_model"]).head(16)), ""]
+    return out
 
 
 def main():
@@ -338,6 +411,7 @@ def main():
         lc = pd.read_csv(sp / "local_explanations.csv")
         report += ["Local explanations:\n", md_table(lc.round(1)), ""]
 
+    report += early_warning_sections(res, tabs)
     (res / "REPORT.md").write_text("\n".join(report), encoding="utf-8")
     print(f"wrote {res / 'REPORT.md'}")
 

@@ -1,0 +1,8 @@
+Mechanism group,T=20,T=50,T=100
+Voltage / polarisation,0.09 ± 0.05,0.40 ± 0.28,0.41 ± 0.28
+Charging-protocol proxy,0.29 ± 0.04,0.15 ± 0.03,0.14 ± 0.03
+Internal resistance,0.21 ± 0.04,0.08 ± 0.06,0.10 ± 0.08
+"Discharge-curve shape (ΔQ(V), dQ/dV)",0.08 ± 0.02,0.15 ± 0.10,0.15 ± 0.09
+Capacity fade,0.10 ± 0.07,0.11 ± 0.07,0.12 ± 0.04
+Thermal,0.20 ± 0.11,0.08 ± 0.03,0.04 ± 0.02
+Coulombic efficiency,0.03 ± 0.03,0.03 ± 0.02,0.04 ± 0.02
