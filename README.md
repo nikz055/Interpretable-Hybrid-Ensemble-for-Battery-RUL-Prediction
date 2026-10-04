@@ -314,7 +314,7 @@ pip install -r requirements.txt
 | 7 | `07_make_report.py` | `results/REPORT.md`, tables, figures |
 
 Committed results were produced with Python 3.12 and the pinned `requirements.txt` (CPU, Windows 11). Seeds and folds are fixed in
-`configs/default.yaml`. A from-scratch rerun of steps 1–7 reproduced all committed results exactly; the only difference was under 0.001 cycles in the GPR baseline.
+`configs/default.yaml`. A from-scratch rerun of steps 1–7 reproduced all committed results exactly (the only difference was under 0.001 cycles in the GPR baseline), and rerunning steps 9–11 left every committed file, figures included, unchanged.
 
 ## Repository layout
 
