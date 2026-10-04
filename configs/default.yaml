@@ -45,5 +45,16 @@ experiments:
     kernel_background: 20       # k-means summary of *training* cells
     kernel_nsamples: 1000
 
+  early_warning:
+    # Research question: from the fewest early cycles, which features signal early failure?
+    feature_set: C
+    horizons: [20, 50, 100]
+    models: [plsr, rf, xgb, mlp]          # explained models (tuned params from runs/T{T}_C)
+    shap_seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    ablation_seeds: [0, 1, 2]
+    failure_quantile: 0.3333              # "early failure" = life <= this quantile of TRAINING labels
+    target_recall: 0.90                   # alarm threshold chosen on OOF predictions of training cells
+    report_horizon: 50                    # horizon used for per-cell maintenance reports
+
 output:
   results_dir: results

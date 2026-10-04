@@ -56,6 +56,40 @@ def tree_shap_log(ttr, X_raw: np.ndarray) -> tuple[np.ndarray, float]:
     return sv * scale, base * scale + shift
 
 
+def linear_shap_log(ttr, X_bg_raw: np.ndarray, X_raw: np.ndarray) -> tuple[np.ndarray, float]:
+    """Exact SHAP for a model that is linear in the preprocessed features
+    (PLSR, Ridge): phi_j = w_j (x_j - E_bg[x_j]), rescaled to ln(life).
+
+    Weights are read off the fitted model by probing unit vectors, so the same
+    code works for PLSRegression and Ridge.
+    """
+    pre, model, scale, shift = _parts(ttr)
+    Xt, Bt = pre.transform(X_raw), pre.transform(X_bg_raw)
+    d = Xt.shape[1]
+    f0 = float(np.ravel(model.predict(np.zeros((1, d))))[0])
+    w = np.ravel(model.predict(np.eye(d))) - f0
+    mu = Bt.mean(0)
+    sv = (Xt - mu) * w
+    base = f0 + float(mu @ w)
+    return sv * scale, base * scale + shift
+
+
+def explain_log(name: str, ttr, X_bg_raw: np.ndarray, X_raw: np.ndarray,
+                n_background: int = 20, nsamples: int = 1000, seed: int = 0):
+    """SHAP in ln(cycle life) for any model of the zoo, using the exact
+    explainer where one exists."""
+    if name in ("rf", "xgb"):
+        return tree_shap_log(ttr, X_raw)
+    if name in ("plsr", "ridge"):
+        return linear_shap_log(ttr, X_bg_raw, X_raw)
+    return kernel_shap_log(ttr.predict, X_bg_raw, X_raw, n_background, nsamples, seed)
+
+
+def group_shap(sv: np.ndarray, groups: dict[str, list[int]]) -> dict[str, np.ndarray]:
+    """Per-cell group SHAP values by additivity (sum of member features)."""
+    return {g: sv[:, idx].sum(axis=1) for g, idx in groups.items()}
+
+
 def kernel_shap_log(predict_cycles, X_bg_raw: np.ndarray, X_raw: np.ndarray, n_background: int,
                     nsamples: int, seed: int = 0) -> tuple[np.ndarray, float]:
     """KernelSHAP of ln(predicted cycle life) for any model taking raw features."""

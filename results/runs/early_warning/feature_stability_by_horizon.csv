@@ -1,0 +1,139 @@
+T,feature,group,consensus_share,top10_frequency,learned_sign_majority,sign_agreement_models,expected_sign,plausibility,rank
+20,temp_slope,thermal,0.11984580280818521,0.7254901960784313,-,4/4,-,consistent,1
+20,i_chg_std,charging_protocol_proxy,0.09188159665432018,0.8627450980392157,-,4/4,?,not assessed,2
+20,ir_ref,internal_resistance,0.07666145269571682,0.8627450980392157,-,4/4,-,consistent,3
+20,t_chg_mean,charging_protocol_proxy,0.055917957529655796,0.803921568627451,+,4/4,+,consistent,4
+20,i_chg_mean,charging_protocol_proxy,0.05300154982260184,0.8431372549019608,-,4/4,-,consistent,5
+20,ir_slope,internal_resistance,0.050994246604491915,0.6274509803921569,+,4/4,-,INCONSISTENT,6
+20,dq_var_log,discharge_curve_shape,0.03094795120346816,0.5686274509803921,-,3/4,-,consistent,7
+20,dv_dis_avg,voltage_polarisation,0.027468621764373785,0.27450980392156865,+,4/4,+,consistent,8
+20,t_cv_mean,charging_protocol_proxy,0.026826968510034344,0.2549019607843137,-,4/4,?,not assessed,9
+20,temp_std,thermal,0.026072550891353942,0.5490196078431373,-,4/4,?,not assessed,10
+20,ir_min,internal_resistance,0.024420576722451667,0.21568627450980393,-,3/4,-,consistent,11
+20,v_dis_avg_std,voltage_polarisation,0.024089941867609092,0.37254901960784315,-,4/4,-,consistent,12
+20,ir_change,internal_resistance,0.022605714305143167,0.29411764705882354,+,3/4,-,INCONSISTENT,13
+20,i_max,charging_protocol_proxy,0.019268045701455124,0.3137254901960784,-,4/4,-,consistent,14
+20,qd_slope_late,capacity_fade,0.018866940354592108,0.21568627450980393,~,2/4,+,weak,15
+20,qd_resid_std_last10,capacity_fade,0.018540329824979253,0.19607843137254902,+,2/4,-,INCONSISTENT,16
+20,t_chg_slope,charging_protocol_proxy,0.01831581194205037,0.1568627450980392,-,4/4,?,not assessed,17
+20,qd_slope_last10,capacity_fade,0.016990774663427074,0.13725490196078433,~,2/4,+,weak,18
+20,t_dis_slope,capacity_fade,0.016031060875305342,0.13725490196078433,+,3/4,+,consistent,19
+20,qd_curvature,capacity_fade,0.015212998544668252,0.0784313725490196,-,3/4,+,INCONSISTENT,20
+20,dq_rms,discharge_curve_shape,0.014408409562506226,0.19607843137254902,-,3/4,-,consistent,21
+20,dv_q50,voltage_polarisation,0.013661173000181692,0.0392156862745098,-,3/4,+,INCONSISTENT,22
+20,temp_mean,thermal,0.013410341016673735,0.0784313725490196,+,2/4,-,INCONSISTENT,23
+20,temp_max,thermal,0.01293609785183945,0.11764705882352941,-,4/4,-,consistent,24
+20,dq_min_log,discharge_curve_shape,0.01161614022880799,0.11764705882352941,+,2/4,-,INCONSISTENT,25
+20,dqdv_peak_ratio,discharge_curve_shape,0.011287701547436593,0.0,+,2/4,+,consistent,26
+20,t_cv_slope,charging_protocol_proxy,0.010954414868740712,0.09803921568627451,-,4/4,?,not assessed,27
+20,qd_retention,capacity_fade,0.010406155932946748,0.058823529411764705,+,4/4,+,consistent,28
+20,ce_slope,coulombic_efficiency,0.010368965678249704,0.058823529411764705,+,3/4,?,not assessed,29
+20,ce_mean,coulombic_efficiency,0.010163175759146185,0.058823529411764705,+,2/4,+,consistent,30
+20,dq_mean,discharge_curve_shape,0.01015537589575571,0.0392156862745098,+,2/4,+,consistent,31
+20,dqdv_peak_shift,discharge_curve_shape,0.010111472680103584,0.11764705882352941,-,2/4,?,not assessed,32
+20,temp_range,thermal,0.009368487610181128,0.0196078431372549,-,4/4,-,consistent,33
+20,v_q90_last,voltage_polarisation,0.009165686079725567,0.0392156862745098,+,3/4,+,consistent,34
+20,t_dis_mean,capacity_fade,0.008986669514804134,0.058823529411764705,+,2/4,+,consistent,35
+20,qd_max_minus_ref,capacity_fade,0.008822595898449503,0.0784313725490196,+,2/4,?,not assessed,36
+20,v_q10_last,voltage_polarisation,0.008386082211909313,0.058823529411764705,+,2/4,+,consistent,37
+20,v_q50_last,voltage_polarisation,0.008207604493396187,0.11764705882352941,~,2/4,+,weak,38
+20,v_dis_avg_mean,voltage_polarisation,0.007992382716935566,0.0196078431372549,-,2/4,+,INCONSISTENT,39
+20,qd_slope,capacity_fade,0.0070430065328570225,0.0,+,4/4,+,consistent,40
+20,ce_std,coulombic_efficiency,0.006855857139148063,0.0196078431372549,+,4/4,-,INCONSISTENT,41
+20,e_dis_mean,voltage_polarisation,0.006598328681611032,0.0196078431372549,+,3/4,+,consistent,42
+20,qc_ref,capacity_fade,0.006325716056997779,0.0196078431372549,-,3/4,?,not assessed,43
+20,qd_ref,capacity_fade,0.00632570593562276,0.0392156862745098,+,3/4,?,not assessed,44
+20,qd_std,capacity_fade,0.006293740542695976,0.0,+,3/4,-,INCONSISTENT,45
+20,qd_mean,capacity_fade,0.006187815989207088,0.0392156862745098,+,2/4,?,not assessed,46
+50,v_dis_avg_std,voltage_polarisation,0.17174659686257845,0.9215686274509803,-,4/4,-,consistent,1
+50,dv_dis_avg,voltage_polarisation,0.14382241587620084,0.9803921568627451,+,4/4,+,consistent,2
+50,i_chg_std,charging_protocol_proxy,0.05855721874329428,0.8235294117647058,-,4/4,?,not assessed,3
+50,dq_var_log,discharge_curve_shape,0.0379004952422458,0.7450980392156863,-,4/4,-,consistent,4
+50,ir_ref,internal_resistance,0.03163458834307556,0.5882352941176471,-,4/4,-,consistent,5
+50,qd_resid_std_last10,capacity_fade,0.029614371859004056,0.7254901960784313,+,2/4,-,INCONSISTENT,6
+50,dq_min_log,discharge_curve_shape,0.028950789531553618,0.4117647058823529,-,4/4,-,consistent,7
+50,temp_slope,thermal,0.026987184616254732,0.6470588235294118,-,4/4,-,consistent,8
+50,temp_std,thermal,0.024696585446372973,0.47058823529411764,-,3/4,?,not assessed,9
+50,i_chg_mean,charging_protocol_proxy,0.023075108510111977,0.43137254901960786,-,4/4,-,consistent,10
+50,t_cv_mean,charging_protocol_proxy,0.020747207694237903,0.27450980392156865,-,3/4,?,not assessed,11
+50,i_max,charging_protocol_proxy,0.018622945344555147,0.49019607843137253,-,2/4,-,consistent,12
+50,t_chg_mean,charging_protocol_proxy,0.017651121824568725,0.17647058823529413,+,4/4,+,consistent,13
+50,ir_min,internal_resistance,0.017192795682726598,0.1568627450980392,-,2/4,-,consistent,14
+50,dq_mean,discharge_curve_shape,0.015867437710743997,0.09803921568627451,+,3/4,+,consistent,15
+50,v_q90_last,voltage_polarisation,0.015235258176878994,0.1568627450980392,+,4/4,+,consistent,16
+50,dqdv_peak_ratio,discharge_curve_shape,0.015181749372394675,0.058823529411764705,+,2/4,+,consistent,17
+50,qd_ref,capacity_fade,0.014999132374601053,0.11764705882352941,+,4/4,?,not assessed,18
+50,temp_max,thermal,0.014824077838407515,0.09803921568627451,~,2/4,-,weak,19
+50,dq_rms,discharge_curve_shape,0.014762980217368401,0.09803921568627451,-,4/4,-,consistent,20
+50,qc_ref,capacity_fade,0.01409078095387764,0.09803921568627451,+,2/4,?,not assessed,21
+50,ce_slope,coulombic_efficiency,0.014012563550601854,0.0784313725490196,-,4/4,?,not assessed,22
+50,t_dis_mean,capacity_fade,0.013889492826124582,0.058823529411764705,-,2/4,+,INCONSISTENT,23
+50,qd_mean,capacity_fade,0.013854121243762455,0.13725490196078433,+,4/4,?,not assessed,24
+50,ir_change,internal_resistance,0.013118279022954944,0.11764705882352941,+,3/4,-,INCONSISTENT,25
+50,qd_std,capacity_fade,0.01304925368735288,0.3137254901960784,-,2/4,-,consistent,26
+50,e_dis_mean,voltage_polarisation,0.012806110946512735,0.0784313725490196,+,4/4,+,consistent,27
+50,qd_curvature,capacity_fade,0.012782700701267946,0.0784313725490196,+,3/4,+,consistent,28
+50,t_chg_slope,charging_protocol_proxy,0.011491247084034517,0.0392156862745098,+,2/4,?,not assessed,29
+50,temp_mean,thermal,0.011079598935982007,0.13725490196078433,-,3/4,-,consistent,30
+50,temp_range,thermal,0.010634973032466613,0.0392156862745098,-,4/4,-,consistent,31
+50,qd_max_minus_ref,capacity_fade,0.009975075071608167,0.0392156862745098,+,3/4,?,not assessed,32
+50,ce_std,coulombic_efficiency,0.009864753892366875,0.0,~,2/4,-,weak,33
+50,qd_slope_late,capacity_fade,0.009852858849974536,0.0392156862745098,-,2/4,+,INCONSISTENT,34
+50,ce_mean,coulombic_efficiency,0.009596569084288981,0.0196078431372549,-,3/4,+,INCONSISTENT,35
+50,v_q50_last,voltage_polarisation,0.009352854068870351,0.0392156862745098,+,2/4,+,consistent,36
+50,qd_slope,capacity_fade,0.008959629606324505,0.0196078431372549,-,3/4,+,INCONSISTENT,37
+50,v_dis_avg_mean,voltage_polarisation,0.008665072963183038,0.058823529411764705,+,2/4,+,consistent,38
+50,t_dis_slope,capacity_fade,0.00784053736228961,0.0,+,2/4,+,consistent,39
+50,qd_retention,capacity_fade,0.007795971712341303,0.0,+,2/4,+,consistent,40
+50,v_q10_last,voltage_polarisation,0.007608058929246752,0.058823529411764705,-,2/4,+,INCONSISTENT,41
+50,ir_slope,internal_resistance,0.006549350878945151,0.0,+,3/4,-,INCONSISTENT,42
+50,dv_q50,voltage_polarisation,0.006315772726126626,0.0196078431372549,+,3/4,+,consistent,43
+50,t_cv_slope,charging_protocol_proxy,0.005269695834225463,0.0196078431372549,-,3/4,?,not assessed,44
+50,qd_slope_last10,capacity_fade,0.00511959404106148,0.0196078431372549,+,2/4,+,consistent,45
+50,dqdv_peak_shift,discharge_curve_shape,0.004355021476740764,0.0196078431372549,+,3/4,?,not assessed,46
+100,v_dis_avg_std,voltage_polarisation,0.17935937181891282,0.9411764705882353,-,4/4,-,consistent,1
+100,dv_dis_avg,voltage_polarisation,0.1294725563345424,0.9607843137254902,+,4/4,+,consistent,2
+100,i_chg_std,charging_protocol_proxy,0.05390195645247682,0.8431372549019608,-,4/4,?,not assessed,3
+100,qd_resid_std_last10,capacity_fade,0.034445168588900565,0.5882352941176471,-,3/4,-,consistent,4
+100,ir_ref,internal_resistance,0.033270084175836136,0.5882352941176471,-,3/4,-,consistent,5
+100,dq_min_log,discharge_curve_shape,0.03126192936218062,0.5882352941176471,-,3/4,-,consistent,6
+100,dq_var_log,discharge_curve_shape,0.03040544529909216,0.5882352941176471,-,4/4,-,consistent,7
+100,ir_min,internal_resistance,0.026865592706120073,0.3333333333333333,-,3/4,-,consistent,8
+100,t_cv_mean,charging_protocol_proxy,0.026417759237341853,0.6274509803921569,-,4/4,?,not assessed,9
+100,qd_curvature,capacity_fade,0.02335406729594272,0.29411764705882354,+,4/4,+,consistent,10
+100,v_q90_last,voltage_polarisation,0.02005433736884731,0.39215686274509803,+,3/4,+,consistent,11
+100,i_chg_mean,charging_protocol_proxy,0.01944313339665686,0.23529411764705882,-,4/4,-,consistent,12
+100,t_chg_mean,charging_protocol_proxy,0.019070213713832704,0.2549019607843137,+,4/4,+,consistent,13
+100,t_dis_mean,capacity_fade,0.018093132673499754,0.09803921568627451,-,4/4,+,INCONSISTENT,14
+100,ce_slope,coulombic_efficiency,0.01715436777789004,0.35294117647058826,-,2/4,?,not assessed,15
+100,dq_rms,discharge_curve_shape,0.017152849372836686,0.0784313725490196,-,4/4,-,consistent,16
+100,temp_slope,thermal,0.017041446305166026,0.23529411764705882,-,4/4,-,consistent,17
+100,dq_mean,discharge_curve_shape,0.016491604179439154,0.2549019607843137,+,4/4,+,consistent,18
+100,i_max,charging_protocol_proxy,0.01507273600130336,0.17647058823529413,~,3/4,-,weak,19
+100,qd_ref,capacity_fade,0.014148332474526197,0.09803921568627451,+,4/4,?,not assessed,20
+100,ir_change,internal_resistance,0.014135648105819455,0.058823529411764705,+,2/4,-,INCONSISTENT,21
+100,v_q50_last,voltage_polarisation,0.01348155832451874,0.0392156862745098,-,3/4,+,INCONSISTENT,22
+100,ce_std,coulombic_efficiency,0.013335378705307158,0.11764705882352941,+,3/4,-,INCONSISTENT,23
+100,t_dis_slope,capacity_fade,0.0128566731458793,0.0392156862745098,+,2/4,+,consistent,24
+100,dqdv_peak_ratio,discharge_curve_shape,0.012104679278323621,0.21568627450980393,+,3/4,+,consistent,25
+100,temp_max,thermal,0.011913489392758466,0.058823529411764705,-,3/4,-,consistent,26
+100,qd_mean,capacity_fade,0.011496303509548724,0.11764705882352941,+,4/4,?,not assessed,27
+100,t_chg_slope,charging_protocol_proxy,0.011327458244791868,0.058823529411764705,-,2/4,?,not assessed,28
+100,qc_ref,capacity_fade,0.011029477795830666,0.0392156862745098,+,4/4,?,not assessed,29
+100,dv_q50,voltage_polarisation,0.01059415546416866,0.27450980392156865,+,2/4,+,consistent,30
+100,v_dis_avg_mean,voltage_polarisation,0.010557097405092034,0.13725490196078433,+,3/4,+,consistent,31
+100,qd_std,capacity_fade,0.009840874161625258,0.0784313725490196,+,2/4,-,INCONSISTENT,32
+100,ce_mean,coulombic_efficiency,0.009721820720909272,0.0196078431372549,+,2/4,+,consistent,33
+100,ir_slope,internal_resistance,0.009532799720072455,0.0392156862745098,+,2/4,-,INCONSISTENT,34
+100,v_q10_last,voltage_polarisation,0.009469972185344294,0.058823529411764705,+,2/4,+,consistent,35
+100,qd_slope,capacity_fade,0.009415845874977962,0.0,+,2/4,+,consistent,36
+100,e_dis_mean,voltage_polarisation,0.009188350344318329,0.0392156862745098,+,4/4,+,consistent,37
+100,temp_std,thermal,0.008530898199388254,0.0196078431372549,-,2/4,?,not assessed,38
+100,qd_retention,capacity_fade,0.008389902401786239,0.0,+,2/4,+,consistent,39
+100,t_cv_slope,charging_protocol_proxy,0.008351342187689181,0.0,+,2/4,?,not assessed,40
+100,qd_max_minus_ref,capacity_fade,0.007874363924540377,0.0196078431372549,-,2/4,?,not assessed,41
+100,dqdv_peak_shift,discharge_curve_shape,0.0076943681813270905,0.0196078431372549,+,3/4,?,not assessed,42
+100,qd_slope_late,capacity_fade,0.00761247275312933,0.0196078431372549,+,2/4,+,consistent,43
+100,qd_slope_last10,capacity_fade,0.00681448191292418,0.0,+,3/4,+,consistent,44
+100,temp_mean,thermal,0.00624707776135574,0.0,+,2/4,-,INCONSISTENT,45
+100,temp_range,thermal,0.006007423177111219,0.0,-,3/4,-,consistent,46

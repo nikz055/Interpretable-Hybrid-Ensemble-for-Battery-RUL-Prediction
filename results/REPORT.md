@@ -195,3 +195,175 @@ Local explanations:
 | correct_long_life | b1c23 | 1014.0 | 1015.0 | 1.0 | long | {"v_dis_avg_std": 0.0563, "i_chg_std": 0.0435, "dv_dis_avg": 0.0351, "qd_curvature": 0.0343, "dq_var_log": 0.0332, "dq_min_log": 0.0305, "dq_mean": 0.0233, "t_cv_mean": 0.0227} |
 | worst_underprediction | b2c47 | 713.0 | 473.6 | -239.4 | medium | {"i_chg_std": -0.0588, "qd_ref": -0.0561, "qc_ref": -0.0477, "t_chg_mean": -0.0471, "v_dis_avg_std": 0.0419, "ce_slope": -0.0388, "ir_ref": -0.0361, "v_q50_last": 0.0349} |
 | worst_overprediction | b1c25 | 854.0 | 1007.6 | 153.6 | long | {"v_dis_avg_std": 0.0598, "dv_dis_avg": 0.0514, "i_chg_std": 0.0484, "t_cv_mean": 0.0472, "dq_min_log": 0.0386, "dq_var_log": 0.0372, "v_q90_last": 0.0341, "t_dis_mean": 0.0327} |
+
+# Early-warning interpretability study (steps 8-11)
+
+## Table 9 - Share of SHAP attribution by mechanism group and cycles observed
+
+Consensus = mean over PLSR, RF, XGBoost and MLP of each model's share of total |group SHAP| on held-out cells (10 seeds + 5 CV folds); ± = spread between models.
+
+| Mechanism group | T=20 | T=50 | T=100 |
+|---|---|---|---|
+| Voltage / polarisation | 0.09 ± 0.05 | 0.40 ± 0.28 | 0.41 ± 0.28 |
+| Charging-protocol proxy | 0.29 ± 0.04 | 0.15 ± 0.03 | 0.14 ± 0.03 |
+| Internal resistance | 0.21 ± 0.04 | 0.08 ± 0.06 | 0.10 ± 0.08 |
+| Discharge-curve shape (ΔQ(V), dQ/dV) | 0.08 ± 0.02 | 0.15 ± 0.10 | 0.15 ± 0.09 |
+| Capacity fade | 0.10 ± 0.07 | 0.11 ± 0.07 | 0.12 ± 0.04 |
+| Thermal | 0.20 ± 0.11 | 0.08 ± 0.03 | 0.04 ± 0.02 |
+| Coulombic efficiency | 0.03 ± 0.03 | 0.03 ± 0.02 | 0.04 ± 0.02 |
+
+## Table 10 - Top features by horizon (consensus)
+
+top-10 frequency = fraction of all 51 explanation runs (PLSR 6, RF/XGB/MLP 15 each) in which the feature is top-10; learned sign = majority sign of Spearman(feature value, SHAP) across models.
+
+| T | rank | feature | group | share | top-10 frequency | learned sign | expected | plausibility |
+|---|---|---|---|---|---|---|---|---|
+| 20 | 1 | temp_slope | Thermal | 0.120 | 0.73 | - (4/4) | - | consistent |
+| 20 | 2 | i_chg_std | Charging-protocol proxy | 0.092 | 0.86 | - (4/4) | ? | not assessed |
+| 20 | 3 | ir_ref | Internal resistance | 0.077 | 0.86 | - (4/4) | - | consistent |
+| 20 | 4 | t_chg_mean | Charging-protocol proxy | 0.056 | 0.80 | + (4/4) | + | consistent |
+| 20 | 5 | i_chg_mean | Charging-protocol proxy | 0.053 | 0.84 | - (4/4) | - | consistent |
+| 20 | 6 | ir_slope | Internal resistance | 0.051 | 0.63 | + (4/4) | - | INCONSISTENT |
+| 50 | 1 | v_dis_avg_std | Voltage / polarisation | 0.172 | 0.92 | - (4/4) | - | consistent |
+| 50 | 2 | dv_dis_avg | Voltage / polarisation | 0.144 | 0.98 | + (4/4) | + | consistent |
+| 50 | 3 | i_chg_std | Charging-protocol proxy | 0.059 | 0.82 | - (4/4) | ? | not assessed |
+| 50 | 4 | dq_var_log | Discharge-curve shape (ΔQ(V), dQ/dV) | 0.038 | 0.75 | - (4/4) | - | consistent |
+| 50 | 5 | ir_ref | Internal resistance | 0.032 | 0.59 | - (4/4) | - | consistent |
+| 50 | 6 | qd_resid_std_last10 | Capacity fade | 0.030 | 0.73 | + (2/4) | - | INCONSISTENT |
+| 100 | 1 | v_dis_avg_std | Voltage / polarisation | 0.179 | 0.94 | - (4/4) | - | consistent |
+| 100 | 2 | dv_dis_avg | Voltage / polarisation | 0.129 | 0.96 | + (4/4) | + | consistent |
+| 100 | 3 | i_chg_std | Charging-protocol proxy | 0.054 | 0.84 | - (4/4) | ? | not assessed |
+| 100 | 4 | qd_resid_std_last10 | Capacity fade | 0.034 | 0.59 | - (3/4) | - | consistent |
+| 100 | 5 | ir_ref | Internal resistance | 0.033 | 0.59 | - (3/4) | - | consistent |
+| 100 | 6 | dq_min_log | Discharge-curve shape (ΔQ(V), dQ/dV) | 0.031 | 0.59 | - (3/4) | - | consistent |
+
+## Table 11 - Group ablation: retrain without / with only each group (grouped CV on training cells)
+
+Mean over PLSR, RF, XGBoost (3 seeds for RF/XGB). Δ = change vs. all features; positive Δ for drop:<group> means the group carries information the others cannot replace.
+
+| config | T=20 CV MAE (Δ) | T=50 CV MAE (Δ) | T=100 CV MAE (Δ) |
+|---|---|---|---|
+| full | 109.8 (+0.0) | 97.8 (+0.0) | 98.3 (+0.0) |
+| degradation_only | 128.6 (+18.8) | 98.0 (+0.2) | 98.7 (+0.4) |
+| protocol_metadata_only | 177.0 (+67.2) | 176.0 (+78.2) | 173.3 (+75.0) |
+| drop:capacity_fade | 108.0 (-1.8) | 103.9 (+6.0) | 100.1 (+1.7) |
+| drop:charging_protocol_proxy | 128.6 (+18.8) | 98.0 (+0.2) | 98.7 (+0.4) |
+| drop:coulombic_efficiency | 107.4 (-2.5) | 96.3 (-1.5) | 96.0 (-2.4) |
+| drop:discharge_curve_shape | 109.8 (-0.1) | 100.2 (+2.3) | 97.7 (-0.6) |
+| drop:internal_resistance | 114.0 (+4.2) | 97.2 (-0.7) | 100.3 (+2.0) |
+| drop:thermal | 119.5 (+9.7) | 100.8 (+3.0) | 96.1 (-2.3) |
+| drop:voltage_polarisation | 109.1 (-0.8) | 113.8 (+16.0) | 107.7 (+9.4) |
+| only:capacity_fade | 184.8 (+74.9) | 172.4 (+74.6) | 164.0 (+65.7) |
+| only:charging_protocol_proxy | 122.2 (+12.4) | 133.2 (+35.4) | 137.5 (+39.2) |
+| only:coulombic_efficiency | 202.3 (+92.4) | 220.9 (+123.1) | 234.2 (+135.9) |
+| only:discharge_curve_shape | 155.0 (+45.2) | 154.9 (+57.1) | 143.4 (+45.0) |
+| only:internal_resistance | 150.6 (+40.8) | 153.0 (+55.1) | 174.2 (+75.9) |
+| only:thermal | 158.8 (+48.9) | 203.8 (+106.0) | 207.4 (+109.1) |
+| only:voltage_polarisation | 159.7 (+49.9) | 110.8 (+12.9) | 110.1 (+11.8) |
+
+## Table 12 - Early-failure alarms (early failure = life ≤ 488 cycles; 11/42 test cells)
+
+Alarm cutoffs set on OOF predictions of training cells for ≥ 90% recall; no-skill PR-AUC = 0.26. Maintenance model at T=50 chosen by OOF PR-AUC: mean_rf_xgb_mlp.
+
+| T | model | recall | precision | false-alarm rate | ROC-AUC | PR-AUC | OOF PR-AUC (selection) |
+|---|---|---|---|---|---|---|---|
+| 20 | XGBoost | 0.99 | 0.52 | 0.32 | 0.84 | 0.54 | 0.80 |
+| 20 | Random forest | 1.00 | 0.52 | 0.32 | 0.81 | 0.47 | 0.77 |
+| 20 | Equal-weight RF+XGB+MLP | 0.98 | 0.50 | 0.35 | 0.83 | 0.52 | 0.77 |
+| 20 | Ridge | 1.00 | 0.46 | 0.42 | 0.80 | 0.52 | 0.74 |
+| 20 | PLSR | 1.00 | 0.46 | 0.42 | 0.80 | 0.53 | 0.73 |
+| 20 | Stack RF+XGB+MLP | 0.91 | 0.46 | 0.39 | 0.80 | 0.51 | 0.71 |
+| 20 | Logistic (protocol metadata only) | 1.00 | 0.32 | 0.74 | 0.81 | 0.65 | 0.64 |
+| 20 | Logistic (all features) | 0.91 | 0.50 | 0.32 | 0.80 | 0.48 | 0.63 |
+| 20 | MLP | 0.92 | 0.39 | 0.55 | 0.78 | 0.49 | 0.63 |
+| 20 | Logistic (degradation features only) | 0.91 | 0.48 | 0.35 | 0.82 | 0.56 | 0.63 |
+| 50 | Equal-weight RF+XGB+MLP | 0.78 | 0.56 | 0.23 | 0.86 | 0.64 | 0.82 |
+| 50 | PLSR | 0.91 | 0.62 | 0.19 | 0.91 | 0.79 | 0.82 |
+| 50 | Ridge | 0.91 | 0.62 | 0.19 | 0.92 | 0.81 | 0.81 |
+| 50 | XGBoost | 0.85 | 0.52 | 0.28 | 0.88 | 0.72 | 0.80 |
+| 50 | Random forest | 0.82 | 0.53 | 0.26 | 0.81 | 0.58 | 0.79 |
+| 50 | MLP | 0.89 | 0.53 | 0.30 | 0.85 | 0.62 | 0.78 |
+| 50 | Stack RF+XGB+MLP | 0.82 | 0.53 | 0.27 | 0.85 | 0.61 | 0.78 |
+| 50 | Logistic (all features) | 0.64 | 0.58 | 0.16 | 0.87 | 0.69 | 0.72 |
+| 50 | Logistic (degradation features only) | 0.64 | 0.58 | 0.16 | 0.86 | 0.68 | 0.70 |
+| 50 | Logistic (protocol metadata only) | 1.00 | 0.32 | 0.74 | 0.81 | 0.65 | 0.64 |
+| 100 | Ridge | 1.00 | 0.65 | 0.19 | 0.96 | 0.87 | 0.76 |
+| 100 | PLSR | 1.00 | 0.61 | 0.23 | 0.94 | 0.82 | 0.74 |
+| 100 | Random forest | 0.90 | 0.58 | 0.24 | 0.91 | 0.74 | 0.72 |
+| 100 | Logistic (all features) | 0.64 | 0.54 | 0.19 | 0.88 | 0.73 | 0.71 |
+| 100 | Stack RF+XGB+MLP | 0.93 | 0.56 | 0.27 | 0.91 | 0.72 | 0.71 |
+| 100 | Equal-weight RF+XGB+MLP | 0.88 | 0.60 | 0.22 | 0.92 | 0.77 | 0.68 |
+| 100 | Logistic (degradation features only) | 0.82 | 0.60 | 0.19 | 0.87 | 0.67 | 0.68 |
+| 100 | XGBoost | 0.89 | 0.60 | 0.21 | 0.92 | 0.75 | 0.67 |
+| 100 | MLP | 0.95 | 0.50 | 0.35 | 0.89 | 0.67 | 0.67 |
+| 100 | Logistic (protocol metadata only) | 1.00 | 0.32 | 0.74 | 0.81 | 0.65 | 0.64 |
+
+## Protocol seen vs. unseen in training (test cells)
+
+`*_life<=1100` removes the four very long-lived 3.6C/4C cells that confound the raw comparison.
+
+| T | model | group | n | mean_life | MAE | RMSE | MAPE_pct |
+|---|---|---|---|---|---|---|---|
+| 20 | plsr | seen | 22 | 891.0 | 152.6 | 236.9 | 15.0 |
+| 20 | plsr | unseen | 20 | 537.4 | 57.3 | 78.7 | 9.9 |
+| 20 | plsr | seen_life<=1100 | 19 | 726.6 | 87.4 | 112.6 | 12.6 |
+| 20 | plsr | unseen_life<=1100 | 20 | 537.4 | 57.3 | 78.7 | 9.9 |
+| 20 | mlp | seen | 22 | 891.0 | 146.6 | 234.0 | 14.1 |
+| 20 | mlp | unseen | 20 | 537.4 | 70.6 | 87.2 | 13.2 |
+| 20 | mlp | seen_life<=1100 | 19 | 726.6 | 84.3 | 107.8 | 11.7 |
+| 20 | mlp | unseen_life<=1100 | 20 | 537.4 | 70.6 | 87.2 | 13.2 |
+| 20 | stack_rf_xgb_mlp | seen | 22 | 891.0 | 144.8 | 232.2 | 13.6 |
+| 20 | stack_rf_xgb_mlp | unseen | 20 | 537.4 | 73.5 | 87.9 | 14.3 |
+| 20 | stack_rf_xgb_mlp | seen_life<=1100 | 19 | 726.6 | 75.8 | 92.9 | 10.9 |
+| 20 | stack_rf_xgb_mlp | unseen_life<=1100 | 20 | 537.4 | 73.5 | 87.9 | 14.3 |
+| 20 | protocol_lookup | seen | 22 | 891.0 | 93.5 | 126.9 | 11.0 |
+| 20 | protocol_lookup | seen_life<=1100 | 19 | 726.6 | 73.6 | 96.8 | 10.8 |
+| 50 | plsr | seen | 22 | 891.0 | 117.7 | 179.2 | 11.8 |
+| 50 | plsr | unseen | 20 | 537.4 | 56.4 | 67.3 | 10.6 |
+| 50 | plsr | seen_life<=1100 | 19 | 726.6 | 68.2 | 84.3 | 10.2 |
+| 50 | plsr | unseen_life<=1100 | 20 | 537.4 | 56.4 | 67.3 | 10.6 |
+| 50 | mlp | seen | 22 | 891.0 | 81.8 | 115.9 | 8.5 |
+| 50 | mlp | unseen | 20 | 537.4 | 36.4 | 44.9 | 7.1 |
+| 50 | mlp | seen_life<=1100 | 19 | 726.6 | 58.8 | 85.0 | 8.0 |
+| 50 | mlp | unseen_life<=1100 | 20 | 537.4 | 36.4 | 44.9 | 7.1 |
+| 50 | stack_rf_xgb_mlp | seen | 22 | 891.0 | 88.6 | 129.6 | 9.0 |
+| 50 | stack_rf_xgb_mlp | unseen | 20 | 537.4 | 55.2 | 64.9 | 11.5 |
+| 50 | stack_rf_xgb_mlp | seen_life<=1100 | 19 | 726.6 | 56.5 | 75.4 | 8.0 |
+| 50 | stack_rf_xgb_mlp | unseen_life<=1100 | 20 | 537.4 | 55.2 | 64.9 | 11.5 |
+| 50 | protocol_lookup | seen | 22 | 891.0 | 93.5 | 126.9 | 11.0 |
+| 50 | protocol_lookup | seen_life<=1100 | 19 | 726.6 | 73.6 | 96.8 | 10.8 |
+| 100 | plsr | seen | 22 | 891.0 | 94.5 | 142.7 | 9.5 |
+| 100 | plsr | unseen | 20 | 537.4 | 50.8 | 69.7 | 9.3 |
+| 100 | plsr | seen_life<=1100 | 19 | 726.6 | 58.6 | 64.1 | 8.4 |
+| 100 | plsr | unseen_life<=1100 | 20 | 537.4 | 50.8 | 69.7 | 9.3 |
+| 100 | mlp | seen | 22 | 891.0 | 75.7 | 109.8 | 7.8 |
+| 100 | mlp | unseen | 20 | 537.4 | 42.2 | 52.3 | 8.1 |
+| 100 | mlp | seen_life<=1100 | 19 | 726.6 | 53.7 | 71.8 | 7.3 |
+| 100 | mlp | unseen_life<=1100 | 20 | 537.4 | 42.2 | 52.3 | 8.1 |
+| 100 | stack_rf_xgb_mlp | seen | 22 | 891.0 | 85.7 | 129.6 | 8.4 |
+| 100 | stack_rf_xgb_mlp | unseen | 20 | 537.4 | 50.2 | 63.5 | 10.2 |
+| 100 | stack_rf_xgb_mlp | seen_life<=1100 | 19 | 726.6 | 53.2 | 65.7 | 7.4 |
+| 100 | stack_rf_xgb_mlp | unseen_life<=1100 | 20 | 537.4 | 50.2 | 63.5 | 10.2 |
+| 100 | protocol_lookup | seen | 22 | 891.0 | 93.5 | 126.9 | 11.0 |
+| 100 | protocol_lookup | seen_life<=1100 | 19 | 726.6 | 73.6 | 96.8 | 10.8 |
+
+## Maintenance report after 50 cycles (alarmed cells first)
+
+| cell_id | true_life | true_early_failure | consensus_pred_life | alarm | risk_score | outcome | life_pulled_down_by | protocol_proxy_effect | key_features_in_top_group |
+|---|---|---|---|---|---|---|---|---|---|
+| b2c3 | 335.0 | True | 369.3 | True | 400.7 | true alarm | Voltage / polarisation -20%; Discharge-curve shape (ΔQ(V), dQ/dV) -11%; Thermal -10% | -5% | dv_dis_avg, v_dis_avg_std, v_q90_last |
+| b2c10 | 561.0 | False | 444.0 | True | 444.7 | false alarm | Voltage / polarisation -11%; Thermal -6%; Internal resistance -6% | -5% | v_dis_avg_std, dv_dis_avg, e_dis_mean |
+| b2c32 | 519.0 | False | 447.7 | True | 452.0 | false alarm | Voltage / polarisation -10%; Capacity fade -9%; Thermal -5% | -3% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c46 | 429.0 | True | 451.8 | True | 460.0 | true alarm | Voltage / polarisation -15%; Discharge-curve shape (ΔQ(V), dQ/dV) -5%; Internal resistance -3% | -4% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c44 | 457.0 | True | 454.9 | True | 466.1 | true alarm | Voltage / polarisation -12%; Discharge-curve shape (ΔQ(V), dQ/dV) -5%; Capacity fade -4% | -5% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c38 | 465.0 | True | 473.6 | True | 475.2 | true alarm | Voltage / polarisation -12%; Discharge-curve shape (ΔQ(V), dQ/dV) -5%; Internal resistance -3% | -4% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c12 | 458.0 | True | 485.7 | True | 478.1 | true alarm | Voltage / polarisation -13%; Discharge-curve shape (ΔQ(V), dQ/dV) -7%; Thermal -2% | -4% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c42 | 466.0 | True | 486.8 | True | 490.1 | true alarm | Voltage / polarisation -14%; Discharge-curve shape (ΔQ(V), dQ/dV) -5%; Thermal -2% | -3% | dv_dis_avg, v_dis_avg_std, dv_q50 |
+| b2c26 | 471.0 | True | 493.8 | True | 483.3 | true alarm | Voltage / polarisation -11%; Internal resistance -5%; Discharge-curve shape (ΔQ(V), dQ/dV) -5% | -1% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c5 | 480.0 | True | 494.0 | True | 486.8 | true alarm | Voltage / polarisation -12%; Capacity fade -4%; Discharge-curve shape (ΔQ(V), dQ/dV) -3% | -3% | v_dis_avg_std, dv_dis_avg, e_dis_mean |
+| b2c40 | 499.0 | False | 501.4 | True | 484.0 | false alarm | Voltage / polarisation -12%; Thermal -6%; Discharge-curve shape (ΔQ(V), dQ/dV) -3% | -2% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c36 | 535.0 | False | 501.9 | True | 495.4 | false alarm | Voltage / polarisation -7%; Internal resistance -6%; Discharge-curve shape (ΔQ(V), dQ/dV) -3% | -2% | v_dis_avg_std, dv_dis_avg, v_q90_last |
+| b2c24 | 495.0 | False | 520.3 | True | 504.0 | false alarm | Voltage / polarisation -13%; Capacity fade -4%; Internal resistance -0% | -4% | v_dis_avg_std, dv_dis_avg, e_dis_mean |
+| b2c18 | 487.0 | True | 473.5 | False | 511.0 | missed failure | Capacity fade -8%; Thermal -6%; Discharge-curve shape (ΔQ(V), dQ/dV) -5% | -5% | qd_resid_std_last10, qd_mean, qd_ref |
+| b2c34 | 499.0 | False | 516.1 | False | 509.9 | correctly not flagged | Voltage / polarisation -7%; Capacity fade -3%; Internal resistance -3% | -3% | dv_dis_avg, v_dis_avg_std, v_q90_last |
+| b2c20 | 502.0 | False | 517.3 | False | 509.7 | correctly not flagged | Voltage / polarisation -12%; Discharge-curve shape (ΔQ(V), dQ/dV) -4%; Internal resistance -3% | -2% | v_dis_avg_std, dv_dis_avg, v_dis_avg_mean |

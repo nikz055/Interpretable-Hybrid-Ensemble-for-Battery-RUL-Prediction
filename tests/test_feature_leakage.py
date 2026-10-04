@@ -75,3 +75,12 @@ def test_window_refuses_label_access():
     for key in ("label", "qd_full", "n_cycles_recorded"):
         with pytest.raises(KeyError):
             win[key]
+
+
+def test_every_feature_has_exactly_one_mechanism_group():
+    from batteryrul.features.dictionary import feature_dictionary
+    from batteryrul.features.groups import MECHANISM_GROUPS
+    members = [f for feats in MECHANISM_GROUPS.values() for f in feats]
+    assert len(members) == len(set(members)), "a feature is listed in two groups"
+    missing = set(feature_dictionary().feature) - set(members)
+    assert not missing, missing

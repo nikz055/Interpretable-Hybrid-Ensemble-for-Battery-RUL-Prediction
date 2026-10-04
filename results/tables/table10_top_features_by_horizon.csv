@@ -1,0 +1,19 @@
+T,rank,feature,group,share,top-10 frequency,learned sign,expected,plausibility
+20,1,temp_slope,Thermal,0.120,0.73,- (4/4),-,consistent
+20,2,i_chg_std,Charging-protocol proxy,0.092,0.86,- (4/4),?,not assessed
+20,3,ir_ref,Internal resistance,0.077,0.86,- (4/4),-,consistent
+20,4,t_chg_mean,Charging-protocol proxy,0.056,0.80,+ (4/4),+,consistent
+20,5,i_chg_mean,Charging-protocol proxy,0.053,0.84,- (4/4),-,consistent
+20,6,ir_slope,Internal resistance,0.051,0.63,+ (4/4),-,INCONSISTENT
+50,1,v_dis_avg_std,Voltage / polarisation,0.172,0.92,- (4/4),-,consistent
+50,2,dv_dis_avg,Voltage / polarisation,0.144,0.98,+ (4/4),+,consistent
+50,3,i_chg_std,Charging-protocol proxy,0.059,0.82,- (4/4),?,not assessed
+50,4,dq_var_log,"Discharge-curve shape (ΔQ(V), dQ/dV)",0.038,0.75,- (4/4),-,consistent
+50,5,ir_ref,Internal resistance,0.032,0.59,- (4/4),-,consistent
+50,6,qd_resid_std_last10,Capacity fade,0.030,0.73,+ (2/4),-,INCONSISTENT
+100,1,v_dis_avg_std,Voltage / polarisation,0.179,0.94,- (4/4),-,consistent
+100,2,dv_dis_avg,Voltage / polarisation,0.129,0.96,+ (4/4),+,consistent
+100,3,i_chg_std,Charging-protocol proxy,0.054,0.84,- (4/4),?,not assessed
+100,4,qd_resid_std_last10,Capacity fade,0.034,0.59,- (3/4),-,consistent
+100,5,ir_ref,Internal resistance,0.033,0.59,- (3/4),-,consistent
+100,6,dq_min_log,"Discharge-curve shape (ΔQ(V), dQ/dV)",0.031,0.59,- (3/4),-,consistent
