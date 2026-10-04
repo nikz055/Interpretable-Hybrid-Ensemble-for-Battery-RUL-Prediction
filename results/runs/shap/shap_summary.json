@@ -1,0 +1,49 @@
+{
+  "main_config": "T100_C",
+  "final_ensemble": "stack_rf_xgb_mlp",
+  "top10_ensemble": [
+    "v_dis_avg_std",
+    "i_chg_std",
+    "dq_min_log",
+    "dv_dis_avg",
+    "dq_var_log",
+    "ir_ref",
+    "ce_slope",
+    "ir_min",
+    "t_chg_mean",
+    "qd_resid_std_last10"
+  ],
+  "rank_agreement_spearman": {
+    "rf": {
+      "rf": 1.0,
+      "xgb": 0.423,
+      "mlp": 0.498,
+      "ensemble": 0.497
+    },
+    "xgb": {
+      "rf": 0.423,
+      "xgb": 1.0,
+      "mlp": 0.443,
+      "ensemble": 0.443
+    },
+    "mlp": {
+      "rf": 0.498,
+      "xgb": 0.443,
+      "mlp": 1.0,
+      "ensemble": 1.0
+    },
+    "ensemble": {
+      "rf": 0.497,
+      "xgb": 0.443,
+      "mlp": 1.0,
+      "ensemble": 1.0
+    }
+  },
+  "dominant_features_gt40pct": [],
+  "local_cases": {
+    "correct_short_life": "b2c30",
+    "correct_long_life": "b1c23",
+    "worst_underprediction": "b2c47",
+    "worst_overprediction": "b1c25"
+  }
+}
