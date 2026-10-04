@@ -99,6 +99,9 @@ def run_configuration(tag: str, X_tr: pd.DataFrame, y_tr: np.ndarray, X_te: pd.D
         weight_rows.append({"seed": seed, "combiner": key, **dict(zip(base_models, w)), "intercept": 0.0})
 
         subsets = [list(c) for r in (2, 3) for c in combinations(base_models, r)]
+        # Exploratory (not used by any pre-registered selection): add the linear
+        # model, which can extrapolate beyond the training life range.
+        subsets.append(["ridge"] + list(base_models))
         for subset in subsets:
             Po = np.column_stack([oof_p[m] for m in subset])
             Pt = np.column_stack([test_p[m] for m in subset])

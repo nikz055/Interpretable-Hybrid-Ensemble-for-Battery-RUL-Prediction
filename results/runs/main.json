@@ -1,0 +1,13 @@
+{
+  "horizon": 100,
+  "feature_set": "C",
+  "tag": "T100_C",
+  "final_ensemble": "stack_rf_xgb_mlp",
+  "best_individual": "plsr",
+  "selection_rule": "lowest grouped-CV RMSE (training cells) of the final ensemble",
+  "cv_rmse_final_ensemble_by_set": {
+    "A": 227.46152609493925,
+    "B": 228.26145352050057,
+    "C": 225.8071995705041
+  }
+}

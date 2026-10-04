@@ -1,0 +1,22 @@
+{
+  "tag": "T20_C",
+  "best_individual_by_cv": "plsr",
+  "final_ensemble_by_cv": "stack_rf_xgb",
+  "cv_rmse": {
+    "dummy": 331.00282051208086,
+    "mean_rf_xgb": 260.46913228151,
+    "mean_rf_xgb_mlp": 248.88284369232161,
+    "mlp": 267.371601925861,
+    "plsr": 182.56691840653428,
+    "rf": 263.684322862711,
+    "ridge": 191.48505481671765,
+    "stack_rf_mlp": 271.38804108210087,
+    "stack_rf_xgb": 268.2513989921131,
+    "stack_rf_xgb_mlp": 272.0507543233755,
+    "stack_ridge_rf_xgb_mlp": 243.1939095885259,
+    "stack_xgb_mlp": 270.9688517189553,
+    "valweighted_rf_xgb_mlp": 244.9880475179129,
+    "xgb": 258.9854015605674
+  },
+  "runtime_s": 190.8
+}

@@ -1,0 +1,22 @@
+{
+  "tag": "T50_C",
+  "best_individual_by_cv": "plsr",
+  "final_ensemble_by_cv": "stack_rf_xgb_mlp",
+  "cv_rmse": {
+    "dummy": 331.00282051208086,
+    "mean_rf_xgb": 230.58070783341813,
+    "mean_rf_xgb_mlp": 221.83100397292296,
+    "mlp": 216.162212322539,
+    "plsr": 207.2323285546685,
+    "rf": 226.21444868003158,
+    "ridge": 209.16629499305168,
+    "stack_rf_mlp": 228.05829324546252,
+    "stack_rf_xgb": 235.07636980409993,
+    "stack_rf_xgb_mlp": 230.54653964336754,
+    "stack_ridge_rf_xgb_mlp": 224.4215839358886,
+    "stack_xgb_mlp": 232.06429625450528,
+    "valweighted_rf_xgb_mlp": 219.91288157970456,
+    "xgb": 239.54114906276837
+  },
+  "runtime_s": 181.1
+}
