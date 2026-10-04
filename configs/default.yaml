@@ -1,0 +1,49 @@
+# Master configuration. Every script reads this file; experiment-specific
+# settings live under `experiments:`. Paths are relative to the repo root.
+
+data:
+  # Folder with BatteryML-processed MATR_<cell>.pkl files.
+  # Override with --data-dir or the MATR_DIR environment variable (e.g. on Kaggle).
+  raw_dir: E:/Battery/Preprocessed/MATR
+  cache_dir: data/cache
+  t_max: 100            # cycles cached per cell; no feature may look beyond this
+
+split:
+  name: batteryml_matr1_primary   # BatteryML MATRPrimaryTestTrainTestSplitter
+  manifest_dir: splits
+  n_folds: 5
+  fold_seed: 2024
+
+seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # BatteryML also reports 10 seeds
+target_transform: log_zscore            # BatteryML: LogScale -> ZScore on labels
+
+preprocessing:
+  winsor_quantiles: [0.01, 0.99]        # fit on training cells only
+  imputer: median                       # fit on training cells only
+
+tuning:
+  repeats: 3          # repeated grouped K-fold on training cells (K = split.n_folds)
+  seed: 7
+  n_iter: 40          # randomized search budget for RF / XGB / MLP
+
+stacking:
+  base_models: [rf, xgb, mlp]
+
+experiments:
+  main:
+    horizon: 100
+    feature_sets: [A, B, C]     # main set = lowest training-CV RMSE of the stack
+  horizon_ablation:
+    horizons: [20, 50, 100]
+  robustness:
+    repeats: 20
+    missing_rates: [0.10, 0.20]
+    capacity_noise_ah: 0.001    # 1 mAh (~0.1 % of 1.1 Ah) on per-cycle Qd, Qc and Qdlin
+    voltage_noise_v: 0.005      # 5 mV on discharge-voltage summaries
+    sparse_every: 5             # keep cycles 1, 6, 11, ...
+  shap:
+    kernel_background: 20       # k-means summary of *training* cells
+    kernel_nsamples: 1000
+
+output:
+  results_dir: results
