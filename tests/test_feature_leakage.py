@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 
 from batteryrul.cache import QDLIN_POINTS, SCALAR_SIGNALS  # noqa: E402
 from batteryrul.features.batteryml_ref import qdlinear_feature, severson_features  # noqa: E402
+from batteryrul.features.physical import set_b, set_c  # noqa: E402
 from batteryrul.features.window import Window  # noqa: E402
 
 
@@ -35,7 +36,7 @@ def corrupt_after(cache, T):
     return bad
 
 
-FEATURE_FUNCS = [severson_features]
+FEATURE_FUNCS = [severson_features, set_b, set_c]
 
 
 @pytest.mark.parametrize("T", [20, 50, 100])
@@ -44,7 +45,23 @@ def test_features_ignore_future_cycles(T):
     for fn in FEATURE_FUNCS:
         a = fn(Window(cache, T))
         b = fn(Window(corrupt_after(cache, T), T))
-        assert a == b, fn.__name__
+        assert a.keys() == b.keys()
+        for k in a:
+            assert a[k] == b[k] or (np.isnan(a[k]) and np.isnan(b[k])), (fn.__name__, k)
+
+
+def test_sparse_window_uses_only_retained_cycles():
+    cache = synthetic_cache(n=100)
+    keep = np.zeros(100, bool)
+    keep[::5] = True
+    bad = {k: (v.copy() if isinstance(v, np.ndarray) else v) for k, v in cache.items()}
+    for k in SCALAR_SIGNALS:
+        bad[k][~keep] = np.nan
+    bad["qdlin"][~keep] = np.nan
+    for fn in FEATURE_FUNCS:
+        a, b = fn(Window(cache, 100, keep)), fn(Window(bad, 100, keep))
+        for k in a:
+            assert a[k] == b[k] or (np.isnan(a[k]) and np.isnan(b[k])), (fn.__name__, k)
 
 
 def test_qdlinear_ignores_future_cycles():

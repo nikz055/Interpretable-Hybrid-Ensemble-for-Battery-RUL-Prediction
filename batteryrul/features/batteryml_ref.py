@@ -27,11 +27,14 @@ EPS = 1e-8
 def median_smooth(x: np.ndarray, window_size: int = 10) -> np.ndarray:
     """BatteryML ``smooth``: running median over [i-10, i+10] (returns medians)."""
     x = np.asarray(x, dtype=float)
-    n = len(x)
-    out = np.empty(n)
-    for i in range(n):
-        out[i] = np.median(x[max(0, i - window_size):min(n, i + window_size + 1)])
-    return out
+    if np.isnan(x).any():          # rare path: keep exact NaN propagation of np.median
+        n = len(x)
+        return np.array([np.median(x[max(0, i - window_size):min(n, i + window_size + 1)])
+                         for i in range(n)])
+    # Vectorised: NaN padding makes truncated edge windows identical to the loop
+    padded = np.pad(x, window_size, constant_values=np.nan)
+    windows = np.lib.stride_tricks.sliding_window_view(padded, 2 * window_size + 1)
+    return np.nanmedian(windows, axis=1)
 
 
 def critical_cycles(T: int) -> tuple[int, int, int]:
