@@ -367,3 +367,68 @@ Alarm cutoffs set on OOF predictions of training cells for ≥ 90% recall; no-sk
 | b2c18 | 487.0 | True | 473.5 | False | 511.0 | missed failure | Capacity fade -8%; Thermal -6%; Discharge-curve shape (ΔQ(V), dQ/dV) -5% | -5% | qd_resid_std_last10, qd_mean, qd_ref |
 | b2c34 | 499.0 | False | 516.1 | False | 509.9 | correctly not flagged | Voltage / polarisation -7%; Capacity fade -3%; Internal resistance -3% | -3% | dv_dis_avg, v_dis_avg_std, v_q90_last |
 | b2c20 | 502.0 | False | 517.3 | False | 509.7 | correctly not flagged | Voltage / polarisation -12%; Discharge-curve shape (ΔQ(V), dQ/dV) -4%; Internal resistance -3% | -2% | v_dis_avg_std, dv_dis_avg, v_dis_avg_mean |
+
+# v2: repeated nested resampling (steps 13-14)
+
+All numbers: 10 repeats x grouped, life-stratified 5-fold over all 83 MATR-1 cells; every cell is predicted by models that never saw it, and all selection/calibration/thresholds come from inner CV on outer-training cells. Mean over repeats; 95 % CI = cell bootstrap. 'Locked' = BatteryML 41/42 split through the same procedure.
+
+## Table 13 - Life prediction and alarm ranking by horizon (resampling)
+
+New = candidate pipeline chosen by inner CV (Gaussian process / ridge / PLSR on Sets C-D); baseline = v1 PLSR on Set C through the identical procedure.
+
+| T | new MAE | baseline MAE (v1 PLSR) | new RMSE | baseline RMSE | 90% interval coverage | baseline PR-AUC (alarm score) | classifier PR-AUC |
+|---|---|---|---|---|---|---|---|
+| 5 | 82.3 [67.6, 99.6] | 100.1 [78.6, 126.6] | 115.4 [90.8, 142.8] | 146.4 [106.4, 190.2] | 91 [85, 96] % | 0.61 [0.44, 0.80] | 0.56 [0.42, 0.75] |
+| 10 | 77.2 [61.7, 96.4] | 88.1 [71.5, 107.8] | 118.9 [85.5, 153.7] | 127.7 [95.5, 161.4] | 91 [86, 95] % | 0.66 [0.49, 0.82] | 0.62 [0.45, 0.78] |
+| 20 | 83.8 [66.5, 104.3] | 95.8 [77.0, 116.9] | 132.2 [89.8, 168.4] | 139.1 [104.1, 171.7] | 90 [86, 95] % | 0.66 [0.49, 0.82] | 0.61 [0.45, 0.81] |
+| 30 | 70.7 [54.8, 91.3] | 85.6 [67.1, 106.1] | 114.3 [80.9, 152.7] | 130.3 [95.1, 164.4] | 90 [85, 94] % | 0.68 [0.54, 0.85] | 0.64 [0.50, 0.80] |
+| 50 | 56.1 [46.7, 66.0] | 69.7 [56.7, 83.8] | 81.7 [63.9, 96.5] | 100.0 [76.7, 121.6] | 91 [87, 95] % | 0.75 [0.60, 0.88] | 0.70 [0.53, 0.84] |
+| 100 | 57.7 [47.1, 69.5] | 58.7 [47.5, 70.8] | 83.2 [60.8, 106.3] | 82.9 [61.4, 104.0] | 90 [86, 95] % | 0.77 [0.62, 0.93] | 0.72 [0.56, 0.88] |
+
+Paired differences (new - baseline; negative MAE/RMSE and positive PR/ROC favour new):
+
+| T | dMAE | dPR_AUC | dRMSE | dROC_AUC |
+|---|---|---|---|---|
+| 5 | -17.8 [-28.5, -6.54] | -0.0496 [-0.171, +0.076] | -31 [-51.1, -9.63] | -0.0252 [-0.0913, +0.0458] |
+| 10 | -10.9 [-18.9, -1.54] | -0.0407 [-0.158, +0.0986] | -8.75 [-20.6, +4.89] | -0.00903 [-0.0742, +0.062] |
+| 20 | -12 [-20.5, -3.88] | -0.0507 [-0.147, +0.0657] | -6.96 [-28.4, +12.6] | -0.00952 [-0.0662, +0.0544] |
+| 30 | -14.9 [-24.8, -5.69] | -0.0395 [-0.147, +0.0733] | -16 [-35.2, +0.226] | -0.0333 [-0.0805, +0.0244] |
+| 50 | -13.5 [-20.9, -5.92] | -0.0487 [-0.144, +0.0463] | -18.4 [-28.5, -8.27] | -0.0248 [-0.074, +0.0224] |
+| 100 | -0.998 [-5.1, +3.55] | -0.0507 [-0.188, +0.0735] | +0.262 [-8.51, +8.68] | -0.0314 [-0.0775, +0.00931] |
+
+## Table 14 - Early-failure decisions with a 'keep testing' option (adaptive test termination)
+
+Conformal pass/fail sets: a cell is declared FAIL or PASS at a checkpoint only when the set is a single label; otherwise it keeps cycling (to end of life after the last checkpoint). Test time saved is relative to running every cell to end of life. The recommended policy (single_50, alpha 0.1) was chosen among these 15 configurations on the same resampled predictions, so its numbers carry mild selection optimism.
+
+| policy | checkpoints | alpha | false_alarm_rate | missed_failure_rate | decided_early | test_time_saved | avg_test_cycles |
+|---|---|---|---|---|---|---|---|
+| every_checkpoint | [5, 10, 20, 30, 50, 100] | 0.05 | 14 [7, 22] % | 19 [8, 30] % | 85 [79, 91] % | 87 [82, 91] % | 91 [63, 119] |
+| every_checkpoint | [5, 10, 20, 30, 50, 100] | 0.1 | 17 [10, 26] % | 22 [10, 36] % | 96 [93, 98] % | 95 [93, 97] % | 32 [21, 44] |
+| every_checkpoint | [5, 10, 20, 30, 50, 100] | 0.2 | 25 [16, 35] % | 21 [11, 34] % | 100 [100, 100] % | 99 [99, 99] % | 6 [5, 6] |
+| from_20 | [20, 50, 100] | 0.05 | 12 [6, 20] % | 14 [4, 27] % | 79 [73, 85] % | 81 [75, 86] % | 134 [106, 165] |
+| from_20 | [20, 50, 100] | 0.1 | 16 [9, 25] % | 18 [9, 28] % | 91 [87, 95] % | 89 [86, 92] % | 75 [56, 93] |
+| from_20 | [20, 50, 100] | 0.2 | 23 [14, 33] % | 17 [6, 31] % | 100 [100, 100] % | 97 [96, 97] % | 22 [22, 23] |
+| from_50 | [50, 100] | 0.05 | 10 [5, 17] % | 9 [2, 17] % | 75 [68, 82] % | 76 [70, 82] % | 167 [135, 198] |
+| from_50 | [50, 100] | 0.1 | 15 [8, 23] % | 12 [5, 21] % | 87 [82, 92] % | 83 [79, 87] % | 116 [93, 141] |
+| from_50 | [50, 100] | 0.2 | 22 [15, 32] % | 19 [9, 29] % | 100 [99, 100] % | 92 [91, 93] % | 54 [52, 57] |
+| single_100 | [100] | 0.05 | 6 [2, 11] % | 6 [1, 13] % | 69 [61, 76] % | 68 [60, 75] % | 223 [195, 256] |
+| single_100 | [100] | 0.1 | 10 [4, 16] % | 10 [3, 19] % | 80 [74, 85] % | 74 [69, 79] % | 181 [160, 203] |
+| single_100 | [100] | 0.2 | 17 [8, 26] % | 13 [4, 24] % | 96 [94, 97] % | 83 [81, 85] % | 118 [111, 126] |
+| single_50 | [50] | 0.05 | 7 [3, 11] % | 5 [1, 12] % | 60 [52, 69] % | 67 [58, 73] % | 232 [193, 272] |
+| single_50 | [50] | 0.1 | 10 [4, 17] % | 7 [2, 13] % | 71 [63, 79] % | 74 [66, 80] % | 182 [148, 218] |
+| single_50 | [50] | 0.2 | 20 [11, 30] % | 18 [8, 29] % | 95 [93, 97] % | 89 [87, 91] % | 74 [63, 86] |
+
+Locked split check, single_50 alpha 0.1: false alarms 0 %, missed failures 0 %, decided at cycle 50 62 %, test time saved 68 %.
+
+## Table 15 - Forced yes/no alarms (no 'keep testing' option), baseline PLSR score
+
+| policy | recall_target | false_alarm_rate | missed_failure_rate |
+|---|---|---|---|
+| forced_alarm_50 | 0.7 | 14 [7, 22] % | 36 % |
+| forced_alarm_50 | 0.8 | 18 [11, 27] % | 26 % |
+| forced_alarm_50 | 0.9 | 23 [15, 33] % | 13 % |
+| forced_alarm_50 | 0.95 | 27 [18, 37] % | 9 % |
+| forced_alarm_100 | 0.7 | 11 [5, 17] % | 29 % |
+| forced_alarm_100 | 0.8 | 13 [7, 20] % | 18 % |
+| forced_alarm_100 | 0.9 | 17 [11, 25] % | 11 % |
+| forced_alarm_100 | 0.95 | 22 [14, 31] % | 6 % |

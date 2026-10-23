@@ -7,13 +7,14 @@ import numpy as np
 import pandas as pd
 
 from .batteryml_ref import SET_A, severson_features
-from .physical import set_b, set_c
+from .physical import set_b, set_c, set_d
 from .window import Window
 
 FEATURE_SETS: dict[str, Callable] = {
     "A": lambda w: {k: severson_features(w)[k] for k in SET_A},
     "B": set_b,
     "C": set_c,
+    "D": set_d,
 }
 
 

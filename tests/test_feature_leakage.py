@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 
 from batteryrul.cache import QDLIN_POINTS, SCALAR_SIGNALS  # noqa: E402
 from batteryrul.features.batteryml_ref import qdlinear_feature, severson_features  # noqa: E402
-from batteryrul.features.physical import set_b, set_c  # noqa: E402
+from batteryrul.features.physical import set_b, set_c, set_d  # noqa: E402
 from batteryrul.features.window import Window  # noqa: E402
 
 
@@ -36,10 +36,10 @@ def corrupt_after(cache, T):
     return bad
 
 
-FEATURE_FUNCS = [severson_features, set_b, set_c]
+FEATURE_FUNCS = [severson_features, set_b, set_c, set_d]
 
 
-@pytest.mark.parametrize("T", [20, 50, 100])
+@pytest.mark.parametrize("T", [5, 10, 20, 50, 100])
 def test_features_ignore_future_cycles(T):
     cache = synthetic_cache(n=100)
     for fn in FEATURE_FUNCS:
@@ -79,8 +79,8 @@ def test_window_refuses_label_access():
 
 def test_every_feature_has_exactly_one_mechanism_group():
     from batteryrul.features.dictionary import feature_dictionary
-    from batteryrul.features.groups import MECHANISM_GROUPS
+    from batteryrul.features.groups import MECHANISM_GROUPS, feature_group
     members = [f for feats in MECHANISM_GROUPS.values() for f in feats]
     assert len(members) == len(set(members)), "a feature is listed in two groups"
-    missing = set(feature_dictionary().feature) - set(members)
-    assert not missing, missing
+    for f in feature_dictionary().feature:
+        feature_group(f.replace("*", "00"))          # raises if a feature has no group

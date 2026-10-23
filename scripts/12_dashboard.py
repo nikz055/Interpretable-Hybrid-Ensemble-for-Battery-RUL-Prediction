@@ -298,6 +298,69 @@ def fig_robustness(res: Path):
     return fig, tab.round(1), None
 
 
+def fig_v2_tradeoff(res: Path):
+    """False alarms vs missed failures: keep-testing policies vs forced yes/no alarms."""
+    v2 = res / "runs" / "v2"
+    s = pd.read_csv(v2 / "termination_summary.csv")
+    s = s[s.split == "resampling"]
+    W = s.pivot_table(index=["policy", "alpha"], columns="metric", values="mean").reset_index()
+    LO = s.pivot_table(index=["policy", "alpha"], columns="metric", values="lo95").reset_index()
+    HI = s.pivot_table(index=["policy", "alpha"], columns="metric", values="hi95").reset_index()
+    f = pd.read_csv(v2 / "forced_alarms.csv")
+    f = f[(f.split == "resampling") & f.policy.isin(["forced_alarm_50", "forced_alarm_100"])]
+    series = [("single_50", "Decide at cycle 50, else keep testing"), ("single_100", "Decide at cycle 100, else keep testing"),
+              ("from_50", "Check at 50 and 100"), ("every_checkpoint", "Check at every checkpoint (5-100)")]
+    fig = go.Figure()
+    for i, (pol, label) in enumerate(series):
+        d, lo, hi = (x[x.policy == pol].sort_values("alpha") for x in (W, LO, HI))
+        fig.add_scatter(x=100 * d.missed_failure_rate, y=100 * d.false_alarm_rate, mode="lines+markers", name=label,
+                        line=dict(color=L["cat"][i], width=2), marker=dict(size=9, color=L["cat"][i], line=dict(color=L["surface"], width=2)),
+                        meta=meta("cat", i),
+                        customdata=np.stack([d.alpha, 100 * d.test_time_saved, 100 * d.decided_early,
+                                             100 * lo.false_alarm_rate.values, 100 * hi.false_alarm_rate.values,
+                                             100 * lo.missed_failure_rate.values, 100 * hi.missed_failure_rate.values], axis=1),
+                        hovertemplate=(f"<b>{label}</b><br>α = %{{customdata[0]}}"
+                                       "<br>false alarms %{y:.0f}% (95% CI %{customdata[3]:.0f}-%{customdata[4]:.0f}%)"
+                                       "<br>missed failures %{x:.0f}% (95% CI %{customdata[5]:.0f}-%{customdata[6]:.0f}%)"
+                                       "<br>test time saved %{customdata[1]:.0f}% · decided early %{customdata[2]:.0f}%<extra></extra>"))
+    for j, (pol, label) in enumerate([("forced_alarm_50", "Forced yes/no alarm at 50"), ("forced_alarm_100", "Forced yes/no alarm at 100")]):
+        d = f[f.policy == pol].sort_values("recall_target")
+        k = 4 + j
+        fig.add_scatter(x=100 * d.missed_failure_rate, y=100 * d.false_alarm_rate, mode="lines+markers", name=label,
+                        line=dict(color=L["cat"][k], width=2), marker=dict(size=9, symbol="square", color=L["cat"][k],
+                                                                         line=dict(color=L["surface"], width=2)),
+                        meta=meta("cat", k), customdata=d.recall_target,
+                        hovertemplate=f"<b>{label}</b><br>alarm tuned for %{{customdata:.0%}} recall<br>false alarms %{{y:.0f}}% · missed failures %{{x:.0f}}%<extra></extra>")
+    base_layout(fig, 460)
+    fig.update_xaxes(title_text="Missed early failures (%)", rangemode="tozero", ticksuffix="%")
+    fig.update_yaxes(title_text="False alarms on healthy cells (%)", rangemode="tozero", ticksuffix="%")
+    fig.update_layout(legend=dict(yanchor="top", y=-0.2), margin=dict(t=16))
+    tab = s[s.metric.isin(["false_alarm_rate", "missed_failure_rate", "decided_early", "test_time_saved"])][
+        ["policy", "checkpoints", "alpha", "metric", "mean", "lo95", "hi95"]].round(3)
+    return fig, tab, None
+
+
+def fig_v2_horizon(res: Path):
+    m = pd.read_csv(res / "runs" / "v2" / "metrics.csv")
+    m = m[m.split == "resampling"]
+    fig = go.Figure()
+    for i, (key, label) in enumerate([("reg_base_MAE", "v1: PLSR on engineered features"),
+                                      ("reg_new_MAE", "v2: pipeline chosen by nested CV")]):
+        d = m[m.metric == key].sort_values("T")
+        fig.add_scatter(x=d["T"], y=d["mean"], mode="lines+markers", name=label,
+                        error_y=dict(type="data", symmetric=False, array=d.hi95 - d["mean"], arrayminus=d["mean"] - d.lo95,
+                                     thickness=1, width=0),
+                        line=dict(color=L["cat"][i], width=2), marker=dict(size=9, color=L["cat"][i], line=dict(color=L["surface"], width=2)),
+                        meta=meta("cat", i), customdata=np.stack([d.lo95, d.hi95], axis=1),
+                        hovertemplate=f"<b>{label}</b><br>after %{{x}} cycles: MAE %{{y:.1f}} cycles<br>95% CI %{{customdata[0]:.1f}}-%{{customdata[1]:.1f}}<extra></extra>")
+    base_layout(fig, 400)
+    fig.update_xaxes(type="log", tickvals=[5, 10, 20, 30, 50, 100], title_text="cycles observed")
+    fig.update_yaxes(title_text="Cycle-life MAE (cycles)", rangemode="tozero")
+    tab = m[m.metric.isin(["reg_new_MAE", "reg_base_MAE", "reg_new_RMSE", "reg_base_RMSE", "reg_new_coverage90"])][
+        ["T", "metric", "mean", "lo95", "hi95"]].round(3)
+    return fig, tab, None
+
+
 # ------------------------------------------------------------------- page ----
 CSS = """
 :root { color-scheme: light;
@@ -446,48 +509,64 @@ def main():
     f7, t7, _ = fig_benchmark(res)
     f8, t8, c8 = fig_pred_true(res)
     f9, t9, _ = fig_robustness(res)
-    figs = {"g-groups": f1, "g-heat": f2, "g-ablation": f3, "g-alarms": f4, "g-explorer": f5,
-            "g-maint": f6, "g-bench": f7, "g-pred": f8, "g-robust": f9}
+    fa, ta, _ = fig_v2_tradeoff(res)
+    fb, tb, _ = fig_v2_horizon(res)
+    figs = {"g-v2-policy": fa, "g-v2-mae": fb, "g-groups": f1, "g-heat": f2, "g-ablation": f3, "g-alarms": f4,
+            "g-explorer": f5, "g-maint": f6, "g-bench": f7, "g-pred": f8, "g-robust": f9}
 
-    caught = int(round(plsr50.recall_mean * m["n_test_early_failures"]))
+    v2 = res / "runs" / "v2"
+    ts = pd.read_csv(v2 / "termination_summary.csv")
+    rec = ts[(ts.split == "resampling") & (ts.policy == "single_50") & (ts.alpha == 0.1)].set_index("metric")["mean"]
+    forced = pd.read_csv(v2 / "forced_alarms.csv")
+    f50 = forced[(forced.split == "resampling") & (forced.policy == "forced_alarm_50") & (forced.recall_target == 0.9)].iloc[0]
+    mv2 = pd.read_csv(v2 / "metrics.csv").query("split == 'resampling' and T == 50").set_index("metric")["mean"]
     tiles = [
-        (f"{caught} / {m['n_test_early_failures']}", f"early-failing test cells flagged after 50 cycles (PLSR alarm)"),
-        (f"{plsr50.false_alarm_rate_mean:.0%}", "false-alarm rate on healthy test cells"),
-        (f"{plsr50.PR_AUC_mean:.2f}", f"PR-AUC at 50 cycles (chance {m['n_test_early_failures'] / 42:.2f})"),
-        (f"{g.loc[(50, 'voltage_polarisation'), 'consensus_share']:.0%}",
-         "of the life signal at 50 cycles comes from discharge-voltage drift"),
+        (f"{rec['false_alarm_rate']:.0%}", f"false alarms at cycle 50 with a keep-testing option (forced yes/no alarm: {f50.false_alarm_rate:.0%})"),
+        (f"{rec['missed_failure_rate']:.0%}", f"early failures missed (forced alarm: {f50.missed_failure_rate:.0%})"),
+        (f"{rec['test_time_saved']:.0%}", "durability-test time saved vs running every cell to end of life"),
+        (f"{mv2['reg_new_MAE']:.0f} cycles", f"cycle-life error (MAE) after 50 cycles (v1 approach: {mv2['reg_base_MAE']:.0f})"),
     ]
     tiles_html = "".join(f'<div class="tile"><div class="v">{v}</div><div class="k">{html.escape(k)}</div></div>' for v, k in tiles)
 
     body = [
-        section("g-groups", "1 · Which mechanism carries the warning signal, and when?",
+        section("g-v2-policy", "1 · Fewer false alarms: decide at cycle 50, or keep testing",
+                "Each point is a decision policy evaluated on all 83 cells by 10 × 5-fold nested resampling (models never saw the "
+                "cells they judge). Forced yes/no alarms (squares) trade false alarms against missed failures. Letting uncertain "
+                "cells keep cycling (circles; conformal pass/fail sets at error level α) lowers both: deciding at cycle 50 "
+                "with α = 0.1 gives about 10 % false alarms and 7 % missed failures while still saving about three quarters "
+                "of test time. Checking at every checkpoint saves more time but compounds errors.", ta),
+        section("g-v2-mae", "2 · Cycle-life prediction error vs. cycles observed",
+                "Mean absolute error with 95 % CIs under the same nested resampling: the v2 pipeline (model, features and "
+                "hyper-parameters chosen by inner CV, mostly a Gaussian process) is significantly more accurate than the v1 "
+                "PLSR approach from 5 to 50 cycles; by 100 cycles they are equal.", tb),
+        section("g-groups", "3 · Which mechanism carries the warning signal, and when?",
                 "Share of SHAP attribution per mechanism group after 20, 50 and 100 cycles (held-out cells; 10 seeds + 5 CV folds). "
                 "At 20 cycles the models lean on the charging protocol, initial resistance and temperature; from 50 cycles "
                 "discharge-voltage drift dominates. Switch the model to see how each one splits the credit.", t1, c1),
-        section("g-heat", "2 · Top individual early-life features by horizon",
+        section("g-heat", "4 · Top individual early-life features by horizon",
                 "Consensus share of attribution for the most important features. Hover for stability (how often the feature is "
                 "top-10 across 51 explanation runs) and whether its learned direction matches battery physics.", t2),
-        section("g-ablation", "3 · Does SHAP agree with retraining?",
+        section("g-ablation", "5 · Does SHAP agree with retraining?",
                 "Models retrained with one group removed, or with one group alone (grouped CV on the 41 training cells). "
                 "Removing voltage/polarisation hurts most from 50 cycles; removing the protocol proxies hurts only at 20 cycles.",
                 t3, c3),
-        section("g-alarms", "4 · Early-failure alarms vs. cycles observed",
+        section("g-alarms", "6 · Early-failure alarms vs. cycles observed",
                 f"Early failure = cycle life ≤ {thr:.0f} (lower third of training lives); {m['n_test_early_failures']} of 42 "
                 "test cells. Alarm cutoffs were fixed on training cells for ≥ 90 % recall, then applied unchanged to the test cells. "
                 "Click legend entries to hide or show a model.", t4),
-        section("g-explorer", "5 · Feature explorer: what an early-failing cell looks like at cycle 50",
+        section("g-explorer", "7 · Feature explorer: what an early-failing cell looks like at cycle 50",
                 "Each dot is one of the 83 MATR-1 cells (train and test). Red = early failure. Pick a feature to see how "
                 "well it separates short-lived cells on its own.", t5, c5),
-        section("g-maint", f"6 · Maintenance report explorer (after {Tr} cycles)",
+        section("g-maint", f"8 · Maintenance report explorer (after {Tr} cycles)",
                 "For each test cell: how much each mechanism group raised (blue) or lowered (red) its predicted life, "
                 "as consensus SHAP across PLSR, RF, XGBoost and MLP. Alarmed cells are listed first.",
                 t6, c6, extra_caption=next(iter(titles.values()))),
-        section("g-bench", "7 · Model benchmark (100 cycles, 42 locked test cells)",
+        section("g-bench", "9 · Model benchmark (100 cycles, 42 locked test cells)",
                 "A tuned stacked ensemble did not beat simple PLSR; nothing beat BatteryML's own PLSR baseline. "
                 "Error bars are the spread over 10 seeds.", t7),
-        section("g-pred", "8 · Predicted vs. true cycle life",
+        section("g-pred", "10 · Predicted vs. true cycle life",
                 "Points on the diagonal are perfect predictions. All models under-predict the few very long-lived cells.", t8, c8),
-        section("g-robust", "9 · Robustness to degraded test data",
+        section("g-robust", "11 · Robustness to degraded test data",
                 "Change in test RMSE when test inputs are corrupted (models trained on clean data; mean ± sd over 10 seeds × 20 repeats). "
                 "Random forest tolerates noise best but suffers most from missing values and sparse cycles.", t9),
     ]

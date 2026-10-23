@@ -199,3 +199,33 @@ def set_b(win: Window) -> dict:
 
 def set_c(win: Window) -> dict:
     return {**core_features(win), **trajectory_features(win)}
+
+
+CURVE_POINTS = 50
+
+
+def fixed_reference_curve_features(win: Window) -> dict:
+    """ΔQ(V) between cycle 2 and cycle T, with the same reference for every horizon.
+
+    Sets A/C compare cycle T with cycle min(10, T/2), so the curve-shape
+    features change definition with T. Here the reference is always cycle 2,
+    which keeps the features comparable from T = 5 to T = 100. Besides four
+    summary statistics, the curve itself is kept at 50 evenly spaced voltages
+    (3.6 V -> 2.0 V) for linear models that can use the full shape (as
+    BatteryML's QdLinear representation does).
+    """
+    late = median_smooth(win.qdlin_at(win.T - 1))
+    ref = median_smooth(win.qdlin_at(REF))
+    dq = median_smooth(late - ref)
+    dq = np.where(np.isfinite(dq), dq, 0.0)
+    f = {"dq2_var_log": float(np.log10(dq.var(ddof=1) + EPS)),
+         "dq2_min_log": float(np.log10(abs(dq.min()) + EPS)),
+         "dq2_mean": float(dq.mean()),
+         "dq2_rms": float(np.sqrt(np.mean(dq ** 2)))}
+    for j, i in enumerate(np.linspace(0, len(dq) - 1, CURVE_POINTS).round().astype(int)):
+        f[f"dq2_curve_{j:02d}"] = float(dq[i])
+    return f
+
+
+def set_d(win: Window) -> dict:
+    return {**set_c(win), **fixed_reference_curve_features(win)}

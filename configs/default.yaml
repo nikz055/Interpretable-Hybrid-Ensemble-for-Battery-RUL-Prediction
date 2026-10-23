@@ -55,6 +55,23 @@ experiments:
     failure_quantile: 0.3333              # "early failure" = life <= this quantile of TRAINING labels
     target_recall: 0.90                   # alarm threshold chosen on OOF predictions of training cells
     report_horizon: 50                    # horizon used for per-cell maintenance reports
+  v2:
+    # Very-early warning + adaptive test termination, evaluated by repeated nested resampling
+    horizons: [5, 10, 20, 30, 50, 100]
+    repeats: 10                           # outer: 10 x grouped, life-stratified 5-fold over all 83 cells
+    n_folds: 5
+    seed: 314
+    failure_threshold_cycles: 488         # fixed specification (= v1 threshold: lower tertile of BatteryML train lives)
+    alphas: [0.05, 0.10, 0.20]            # conformal error levels for pass/fail decision sets
+    interval_alpha: 0.10                  # 90 % prediction intervals for cycle life
+    target_recall: 0.90                   # default alarm operating point
+    alarm_recalls: [0.95, 0.90, 0.80, 0.70]   # alternative operating points (recall vs false alarms)
+    policies:                             # test-termination policies evaluated in step 14 (checkpoints in cycles)
+      every_checkpoint: [5, 10, 20, 30, 50, 100]
+      from_20: [20, 50, 100]
+      from_50: [50, 100]
+      single_50: [50]
+      single_100: [100]
 
 output:
   results_dir: results
