@@ -17,7 +17,8 @@ Steps
   9 SHAP by horizon and mechanism group (early-warning study)             (features only)
  10 group ablation (drop-/only-group retraining)                          (features only)
  11 early-failure alarms, protocol effect, maintenance reports            (features only)
-  7 tables, figures, REPORT.md (runs last)                                (results only)
+  7 tables, figures, REPORT.md                                            (results only)
+ 12 interactive Plotly dashboard -> docs/index.html (GitHub Pages)        (results only)
 """
 from __future__ import annotations
 
@@ -42,6 +43,7 @@ STEPS = [
     ("10", "scripts/10_group_ablation.py"),
     ("11", "scripts/11_early_warning.py"),
     ("7", "scripts/07_make_report.py"),
+    ("12", "scripts/12_dashboard.py"),
 ]
 
 
@@ -50,7 +52,7 @@ def main():
     ap.add_argument("--data-dir", default=None)
     ap.add_argument("--config", default=None)
     ap.add_argument("--jobs", type=int, default=3)
-    ap.add_argument("--from-step", default="0", help="0-11 (order: 0 1 2 3 a 4 5 6 8 9 10 11 7)")
+    ap.add_argument("--from-step", default="0", help="0-12 (order: 0 1 2 3 a 4 5 6 8 9 10 11 7 12)")
     args = ap.parse_args()
     order = [s for s, _ in STEPS]
     start = order.index(args.from_step)
