@@ -29,9 +29,9 @@ Identifies lithium-ion cells likely to fail early from their first 50 cycles, re
 
 ## Validation
 
-- 10 × 5-fold cross-validation split by battery; no cell is scored by a model trained on it.
-- Automated leakage tests; reproduces 9 of 10 BatteryML baselines; deterministic reruns.
-- Limitation: single dataset; validation on other chemistries is required.
+- 10 × 5-fold cross-validation split by battery, so no cell is scored by a model trained on it.
+- Automated leakage tests, reproduction of 9 of 10 BatteryML baselines and deterministic reruns.
+- Limitation: single dataset. Validation on other chemistries is required.
 
 ## Usage
 
