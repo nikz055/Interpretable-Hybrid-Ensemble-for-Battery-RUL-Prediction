@@ -521,75 +521,57 @@ def main():
     f50 = forced[(forced.split == "resampling") & (forced.policy == "forced_alarm_50") & (forced.recall_target == 0.9)].iloc[0]
     mv2 = pd.read_csv(v2 / "metrics.csv").query("split == 'resampling' and T == 50").set_index("metric")["mean"]
     tiles = [
-        (f"{rec['false_alarm_rate']:.0%}", f"false alarms at cycle 50 with a keep-testing option (forced yes/no alarm: {f50.false_alarm_rate:.0%})"),
-        (f"{rec['missed_failure_rate']:.0%}", f"early failures missed (forced alarm: {f50.missed_failure_rate:.0%})"),
-        (f"{rec['test_time_saved']:.0%}", "durability-test time saved vs running every cell to end of life"),
-        (f"{mv2['reg_new_MAE']:.0f} cycles", f"cycle-life error (MAE) after 50 cycles (v1 approach: {mv2['reg_base_MAE']:.0f})"),
+        (f"{rec['false_alarm_rate']:.0%}", f"False alarms (forced alarm: {f50.false_alarm_rate:.0%})"),
+        (f"{rec['missed_failure_rate']:.0%}", f"Missed failures (forced alarm: {f50.missed_failure_rate:.0%})"),
+        (f"{rec['test_time_saved']:.0%}", "Test time saved"),
+        (f"{mv2['reg_new_MAE']:.0f} cycles", f"Life prediction error, MAE (baseline: {mv2['reg_base_MAE']:.0f})"),
     ]
     tiles_html = "".join(f'<div class="tile"><div class="v">{v}</div><div class="k">{html.escape(k)}</div></div>' for v, k in tiles)
 
     body = [
-        section("g-v2-policy", "1 · Fewer false alarms: decide at cycle 50, or keep testing",
-                "Each point is a decision policy evaluated on all 83 cells by 10 × 5-fold nested resampling (models never saw the "
-                "cells they judge). Forced yes/no alarms (squares) trade false alarms against missed failures. Letting uncertain "
-                "cells keep cycling (circles; conformal pass/fail sets at error level α) lowers both: deciding at cycle 50 "
-                "with α = 0.1 gives about 10 % false alarms and 7 % missed failures while still saving about three quarters "
-                "of test time. Checking at every checkpoint saves more time but compounds errors.", ta),
-        section("g-v2-mae", "2 · Cycle-life prediction error vs. cycles observed",
-                "Mean absolute error with 95 % CIs under the same nested resampling: the v2 pipeline (model, features and "
-                "hyper-parameters chosen by inner CV, mostly a Gaussian process) is significantly more accurate than the v1 "
-                "PLSR approach from 5 to 50 cycles; by 100 cycles they are equal.", tb),
-        section("g-groups", "3 · Which mechanism carries the warning signal, and when?",
-                "Share of SHAP attribution per mechanism group after 20, 50 and 100 cycles (held-out cells; 10 seeds + 5 CV folds). "
-                "At 20 cycles the models lean on the charging protocol, initial resistance and temperature; from 50 cycles "
-                "discharge-voltage drift dominates. Switch the model to see how each one splits the credit.", t1, c1),
-        section("g-heat", "4 · Top individual early-life features by horizon",
-                "Consensus share of attribution for the most important features. Hover for stability (how often the feature is "
-                "top-10 across 51 explanation runs) and whether its learned direction matches battery physics.", t2),
-        section("g-ablation", "5 · Does SHAP agree with retraining?",
-                "Models retrained with one group removed, or with one group alone (grouped CV on the 41 training cells). "
-                "Removing voltage/polarisation hurts most from 50 cycles; removing the protocol proxies hurts only at 20 cycles.",
-                t3, c3),
-        section("g-alarms", "6 · Early-failure alarms vs. cycles observed",
-                f"Early failure = cycle life ≤ {thr:.0f} (lower third of training lives); {m['n_test_early_failures']} of 42 "
-                "test cells. Alarm cutoffs were fixed on training cells for ≥ 90 % recall, then applied unchanged to the test cells. "
-                "Click legend entries to hide or show a model.", t4),
-        section("g-explorer", "7 · Feature explorer: what an early-failing cell looks like at cycle 50",
-                "Each dot is one of the 83 MATR-1 cells (train and test). Red = early failure. Pick a feature to see how "
-                "well it separates short-lived cells on its own.", t5, c5),
-        section("g-maint", f"8 · Maintenance report explorer (after {Tr} cycles)",
-                "For each test cell: how much each mechanism group raised (blue) or lowered (red) its predicted life, "
-                "as consensus SHAP across PLSR, RF, XGBoost and MLP. Alarmed cells are listed first.",
+        section("g-v2-policy", "1 · Early-warning decisions",
+                f"False alarms versus missed failures for each decision policy. Continuing to test uncertain cells at "
+                f"cycle 50 lowers both and saves {rec['test_time_saved']:.0%} of test time.", ta),
+        section("g-v2-mae", "2 · Life prediction error",
+                "Mean absolute error by cycles observed, with 95% confidence intervals.", tb),
+        section("g-groups", "3 · Failure indicators by mechanism",
+                "Share of SHAP attribution. Discharge-voltage drift dominates from cycle 50.", t1, c1),
+        section("g-heat", "4 · Top features",
+                "Consensus SHAP importance by cycles observed. Hover for stability and physical consistency.", t2),
+        section("g-ablation", "5 · Retraining check",
+                "Accuracy change when a feature group is removed or used alone.", t3, c3),
+        section("g-alarms", "6 · Alarm performance",
+                f"Recall, false-alarm rate and PR-AUC by cycles observed. Early failure: life of {thr:.0f} cycles or less.", t4),
+        section("g-explorer", "7 · Feature explorer",
+                "How well a single feature at cycle 50 separates early-failing cells (red).", t5, c5),
+        section("g-maint", "8 · Cell-level explanations",
+                f"Effect of each mechanism on a cell's predicted life after {Tr} cycles. Red shortens, blue extends.",
                 t6, c6, extra_caption=next(iter(titles.values()))),
-        section("g-bench", "9 · Model benchmark (100 cycles, 42 locked test cells)",
-                "A tuned stacked ensemble did not beat simple PLSR; nothing beat BatteryML's own PLSR baseline. "
-                "Error bars are the spread over 10 seeds.", t7),
-        section("g-pred", "10 · Predicted vs. true cycle life",
-                "Points on the diagonal are perfect predictions. All models under-predict the few very long-lived cells.", t8, c8),
-        section("g-robust", "11 · Robustness to degraded test data",
-                "Change in test RMSE when test inputs are corrupted (models trained on clean data; mean ± sd over 10 seeds × 20 repeats). "
-                "Random forest tolerates noise best but suffers most from missing values and sparse cycles.", t9),
+        section("g-bench", "9 · Model benchmark",
+                "Test RMSE after 100 cycles. PLSR matched the stacked ensemble.", t7),
+        section("g-pred", "10 · Predicted versus actual life",
+                "Points on the diagonal are exact predictions.", t8, c8),
+        section("g-robust", "11 · Robustness",
+                "Change in test RMSE under noisy, missing or sparse input data.", t9),
     ]
     fig_json = {k: json.loads(pio.to_json(v, validate=False)) for k, v in figs.items()}
     payload = json.dumps(fig_json, separators=(",", ":")).replace("</", "<\\/")
     page = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Early Battery-Failure Dashboard</title>
-<meta name="description" content="Interactive results: which early-cycle signals predict premature lithium-ion battery failure (BatteryML MATR-1).">
+<title>Early Battery Failure Prediction</title>
+<meta name="description" content="Interpretable early-life battery failure prediction for predictive maintenance.">
 <style>{CSS}</style>
 <script src="https://cdn.plot.ly/plotly-{get_plotlyjs_version()}.min.js" charset="utf-8"></script>
 </head><body><div class="wrap">
-<header><div><h1>Which early-cycle signals predict premature battery failure?</h1>
-<p class="sub">Interpretable early-life prognostics for predictive maintenance on the BatteryML MATR-1 benchmark
-(83 LFP/graphite cells; 41 train, 42 locked test). Every number on this page is generated from the committed results by
-<code>scripts/12_dashboard.py</code>.</p></div>
-<div class="links"><a href="{REPO_URL}">GitHub repository</a><a href="{REPO_URL}/blob/main/results/REPORT.md">Full report</a>
+<header><div><h1>Interpretable Early-Life Battery Failure Prediction for Predictive Maintenance</h1>
+<p class="sub">Identifies lithium-ion cells likely to fail early from their first 50 cycles.
+83 LFP cells, BatteryML MATR-1 benchmark.</p></div>
+<div class="links"><a href="{REPO_URL}">GitHub repository</a><a href="{REPO_URL}/blob/main/results/REPORT.md">Results report</a>
 <button id="theme-btn" type="button">Theme: auto</button></div></header>
 <div class="tiles">{tiles_html}</div>
 {''.join(body)}
-<p class="note">SHAP and ablation identify early indicators <em>associated</em> with early failure in this dataset; mechanism
-labels (e.g. polarisation) are physically motivated hypotheses, not causal proof. Small sample: 11 test early failures, so one
-cell moves recall by 0.09. Method, audit and limitations: <a href="{REPO_URL}/blob/main/docs/TECHNICAL_DETAILS.md">technical details</a>.</p>
+<p class="note">SHAP indicates association, not causation. Single dataset of 83 cells.
+<a href="{REPO_URL}/blob/main/docs/TECHNICAL_DETAILS.md">Methods and limitations</a>.</p>
 </div>
 <script type="application/json" id="figs">{payload}</script>
 <script>{JS.replace("__PAL__", json.dumps(PAL))}</script>
