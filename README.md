@@ -1,15 +1,20 @@
-# Early Battery Failure Prediction
+# Interpretable Early-Life Battery Failure Prediction for Predictive Maintenance
 
-Interpretable machine learning that identifies lithium-ion cells likely to fail early from their first 50 cycles,
-reducing durability-test time.
+Identifies lithium-ion cells likely to fail early from their first 50 cycles, reducing durability-test time.
 
 [Interactive dashboard](https://nikz055.github.io/Interpretable-Hybrid-Ensemble-for-Battery-RUL-Prediction/)
+
+## Highlights
+
+- Built a reproducible data pipeline and Plotly dashboard to analyse battery test data.
+- Applied SHAP to identify discharge-voltage drift as the leading early-failure indicator by cycle 50.
+- Developed a calibrated early-warning system, cutting false alarms from 23% to 10% and test time by 74%.
 
 ## Results
 
 83 LFP cells, Microsoft [BatteryML](https://github.com/microsoft/BatteryML) MATR-1 benchmark. Early failure: life of 488 cycles or less.
 
-| Metric (after 50 cycles) | This work | Forced yes/no alarm |
+| Metric (after 50 cycles) | Early-warning system | Forced yes/no alarm |
 |---|---|---|
 | False alarms | 10% | 23% |
 | Missed failures | 7% | 13% |
@@ -18,16 +23,9 @@ reducing durability-test time.
 
 ## Approach
 
-- **Features:** capacity, voltage, resistance and temperature signals from cycles 1–50.
-- **Prediction:** cycle-life model with calibrated uncertainty intervals.
-- **Decision:** fail, pass, or continue testing when uncertain, which halves false alarms.
-- **Explanation:** SHAP attribution per cell.
-
-## Key findings
-
-- Discharge-voltage drift is the strongest early indicator of failure; capacity fade is weaker.
-- A linear model (PLSR) matched a tuned ensemble of Random Forest, XGBoost and MLP.
-- Predictions from 5–10 cycles were not reliable enough for use.
+- **Data pipeline:** extracts capacity, voltage, resistance and temperature features from cycles 1–50.
+- **Explainability:** SHAP attribution per cell, confirmed by retraining without each feature group.
+- **Early warning:** calibrated decision of fail, pass, or continue testing when uncertain.
 
 ## Validation
 
