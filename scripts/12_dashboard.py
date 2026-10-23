@@ -589,7 +589,7 @@ def main():
 {''.join(body)}
 <p class="note">SHAP and ablation identify early indicators <em>associated</em> with early failure in this dataset; mechanism
 labels (e.g. polarisation) are physically motivated hypotheses, not causal proof. Small sample: 11 test early failures, so one
-cell moves recall by 0.09. Method, audit and limitations: <a href="{REPO_URL}#readme">README</a>.</p>
+cell moves recall by 0.09. Method, audit and limitations: <a href="{REPO_URL}/blob/main/docs/TECHNICAL_DETAILS.md">technical details</a>.</p>
 </div>
 <script type="application/json" id="figs">{payload}</script>
 <script>{JS.replace("__PAL__", json.dumps(PAL))}</script>
