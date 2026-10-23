@@ -386,7 +386,8 @@ h2 { font-size:19px; margin:0 0 4px; }
 .tile .v { font-size:28px; font-weight:650; line-height:1.15; }
 .tile .k { color:var(--ink2); font-size:13px; margin-top:4px; }
 .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 18px 10px; margin-top:18px; }
-.card p.cap { color:var(--ink2); margin:2px 0 10px; max-width:900px; }
+.card p.cap { color:var(--ink2); margin:2px 0 8px; max-width:900px; }
+.card p.inference { margin:0 0 10px; padding:6px 0 6px 12px; border-left:3px solid var(--accent); color:var(--ink); max-width:900px; }
 .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:8px 0 4px; color:var(--ink2); font-size:14px; }
 select { font:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:5px 8px; max-width:100%; }
 .caption { font-weight:600; color:var(--ink); margin:6px 0 0; font-size:14px; }
@@ -474,7 +475,7 @@ label();
 """
 
 
-def section(fid, title, caption, tab, controls=None, extra_caption=None):
+def section(fid, title, caption, tab, controls=None, extra_caption=None, inference=None):
     ctl = ""
     if controls:
         opts = "".join(f'<option value="{html.escape(str(v))}">{html.escape(str(t))}</option>' for v, t in controls["options"])
@@ -482,7 +483,9 @@ def section(fid, title, caption, tab, controls=None, extra_caption=None):
                f'<select id="{fid}-select">{opts}</select></div>')
     cap2 = f'<p class="caption" id="{fid}-caption">{html.escape(extra_caption)}</p>' if extra_caption else ""
     return (f'<section class="card" aria-labelledby="{fid}-h"><h2 id="{fid}-h">{html.escape(title)}</h2>'
-            f'<p class="cap">{caption}</p>{ctl}{cap2}<div id="{fid}" role="img" aria-label="{html.escape(title)}"></div>'
+            f'<p class="cap">{caption}</p>'
+            + (f'<p class="inference"><strong>Inference:</strong> {html.escape(inference)}</p>' if inference else "")
+            + f'{ctl}{cap2}<div id="{fid}" role="img" aria-label="{html.escape(title)}"></div>'
             f'<details><summary>Table view</summary><div class="tblwrap">{table_html(tab)}</div></details></section>')
 
 
@@ -531,28 +534,28 @@ def main():
     body = [
         section("g-v2-policy", "1 · Early-warning decisions",
                 f"False alarms versus missed failures for each decision policy. Continuing to test uncertain cells at "
-                f"cycle 50 lowers both and saves {rec['test_time_saved']:.0%} of test time.", ta),
+                f"cycle 50 lowers both and saves {rec['test_time_saved']:.0%} of test time.", ta, inference="Letting uncertain cells keep testing cuts false alarms from 23% to 10% and also misses fewer failures."),
         section("g-v2-mae", "2 · Life prediction error",
-                "Mean absolute error by cycles observed, with 95% confidence intervals.", tb),
+                "Mean absolute error by cycles observed, with 95% confidence intervals.", tb, inference="Error is lowest from cycle 50 onwards, and the improved model is more accurate up to cycle 50."),
         section("g-groups", "3 · Failure indicators by mechanism",
-                "Share of SHAP attribution. Discharge-voltage drift dominates from cycle 50.", t1, c1),
+                "Share of SHAP attribution. Discharge-voltage drift dominates from cycle 50.", t1, c1, inference="Early predictions lean on charging conditions and starting state. From cycle 50, voltage drift is the main warning sign."),
         section("g-heat", "4 · Top features",
-                "Consensus SHAP importance by cycles observed. Hover for stability and physical consistency.", t2),
+                "Consensus SHAP importance by cycles observed. Hover for stability and physical consistency.", t2, inference="Discharge-voltage variability and drift are the most important and most stable features from cycle 50."),
         section("g-ablation", "5 · Retraining check",
-                "Accuracy change when a feature group is removed or used alone.", t3, c3),
+                "Accuracy change when a feature group is removed or used alone.", t3, c3, inference="From cycle 50, removing the voltage features hurts accuracy most, confirming SHAP. At cycle 20, charging features matter most."),
         section("g-alarms", "6 · Alarm performance",
-                f"Recall, false-alarm rate and PR-AUC by cycles observed. Early failure: life of {thr:.0f} cycles or less.", t4),
+                f"Recall, false-alarm rate and PR-AUC by cycles observed. Early failure: life of {thr:.0f} cycles or less.", t4, inference="Alarms become far more reliable between cycle 20 and cycle 50. Charging conditions alone flag most healthy cells."),
         section("g-explorer", "7 · Feature explorer",
-                "How well a single feature at cycle 50 separates early-failing cells (red).", t5, c5),
+                "How well a single feature at cycle 50 separates early-failing cells (red).", t5, c5, inference="Early-failing cells show higher voltage variability, with some overlap near the threshold."),
         section("g-maint", "8 · Cell-level explanations",
                 f"Effect of each mechanism on a cell's predicted life after {Tr} cycles. Red shortens, blue extends.",
-                t6, c6, extra_caption=next(iter(titles.values()))),
+                t6, c6, extra_caption=next(iter(titles.values())), inference="For all 13 flagged cells, voltage drift is the largest factor shortening predicted life."),
         section("g-bench", "9 · Model benchmark",
-                "Test RMSE after 100 cycles. PLSR matched the stacked ensemble.", t7),
+                "Test RMSE after 100 cycles. PLSR matched the stacked ensemble.", t7, inference="A simple linear model is as accurate as complex ensembles, so the simpler model was kept."),
         section("g-pred", "10 · Predicted versus actual life",
-                "Points on the diagonal are exact predictions.", t8, c8),
+                "Points on the diagonal are exact predictions.", t8, c8, inference="Predictions are close for typical cells but underestimate the few longest-lived ones."),
         section("g-robust", "11 · Robustness",
-                "Change in test RMSE under noisy, missing or sparse input data.", t9),
+                "Change in test RMSE under noisy, missing or sparse input data.", t9, inference="Random forest tolerates sensor noise best, linear models tolerate skipped cycles best, and all models degrade with missing data."),
     ]
     fig_json = {k: json.loads(pio.to_json(v, validate=False)) for k, v in figs.items()}
     payload = json.dumps(fig_json, separators=(",", ":")).replace("</", "<\\/")
