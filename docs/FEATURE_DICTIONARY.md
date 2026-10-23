@@ -62,3 +62,8 @@ Set C = Set B ∪ the rows marked C. Windows are stated for T = 100; for other h
 | `t_cv_slope` | C | OLS slope of CV duration | min/100 cyc | I, V, t | W | CV duration trend (∝ resistance) |
 | `ir_slope` | C | OLS slope of cleaned IR | Ω/100 cyc | IR | W | Resistance growth rate |
 | `temp_slope` | C | OLS slope of cycle-mean temperature | °C/100 cyc | T | W | Thermal trend |
+| `dq2_var_log` | D | log10 Var_V[ΔQ2(V)], ΔQ2 = smooth(Q_{T-1}(V) - Q_1(V)) | log10 Ah² | Qdlin | cycles 2, T | Curve-shape change vs a fixed early reference (comparable across horizons) |
+| `dq2_min_log` | D | log10 |min_V ΔQ2(V)| | log10 Ah | Qdlin | cycles 2, T | Largest local capacity loss vs cycle 2 |
+| `dq2_mean` | D | mean_V ΔQ2(V) | Ah | Qdlin | cycles 2, T | Average curve shift vs cycle 2 |
+| `dq2_rms` | D | sqrt(mean_V ΔQ2(V)²) | Ah | Qdlin | cycles 2, T | Curve-shape distance (L2) vs cycle 2 |
+| `dq2_curve_*` | D | ΔQ2(V) sampled at 50 evenly spaced voltages from 3.6 V (00) to 2.0 V (49) | Ah | Qdlin | cycles 2, T | Full shape of the curve change (QdLinear-style representation) |

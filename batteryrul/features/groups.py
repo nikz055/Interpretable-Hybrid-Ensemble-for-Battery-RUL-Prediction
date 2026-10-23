@@ -18,7 +18,8 @@ MECHANISM_GROUPS: dict[str, list[str]] = {
                       "qd_early", "qd_max_minus_early", "qd_intercept"],
     # change in the shape of the discharge Q(V) curve (Severson ΔQ(V), dQ/dV)
     "discharge_curve_shape": ["dq_var_log", "dq_min_log", "dq_mean", "dq_rms", "dq_skew_log",
-                              "dq_kurt_log", "dqdv_peak_shift", "dqdv_peak_ratio"],
+                              "dq_kurt_log", "dqdv_peak_shift", "dqdv_peak_ratio",
+                              "dq2_var_log", "dq2_min_log", "dq2_mean", "dq2_rms"],
     # discharge voltage level and its drift (polarisation / overpotential growth)
     "voltage_polarisation": ["v_dis_avg_mean", "v_dis_avg_std", "e_dis_mean", "v_q10_last",
                              "v_q50_last", "v_q90_last", "dv_q50", "dv_dis_avg"],
@@ -45,6 +46,8 @@ GROUP_LABEL = {
 
 
 def feature_group(feature: str) -> str:
+    if feature.startswith("dq2_curve_"):          # sampled ΔQ(V) curve points (Set D)
+        return "discharge_curve_shape"
     for g, feats in MECHANISM_GROUPS.items():
         if feature in feats:
             return g

@@ -62,6 +62,69 @@ def pred_matrix(preds, model, part="test"):
     return P, y.loc[P.columns]
 
 
+def v2_sections(res: Path, tabs: Path) -> list[str]:
+    """Tables 13-15: v2 - repeated nested resampling and test-termination policies (steps 13-14)."""
+    v2 = res / "runs" / "v2"
+    if not (v2 / "metrics.csv").exists():
+        return []
+
+    def ci(d, metric, scale=1.0, fmt="{:.1f}"):
+        r = d[d.metric == metric].iloc[0]
+        return f"{fmt.format(scale * r['mean'])} [{fmt.format(scale * r.lo95)}, {fmt.format(scale * r.hi95)}]"
+
+    m = pd.read_csv(v2 / "metrics.csv")
+    out = ["# v2: repeated nested resampling (steps 13-14)\n",
+           "All numbers: 10 repeats x grouped, life-stratified 5-fold over all 83 MATR-1 cells; every cell is predicted by "
+           "models that never saw it, and all selection/calibration/thresholds come from inner CV on outer-training cells. "
+           "Mean over repeats; 95 % CI = cell bootstrap. 'Locked' = BatteryML 41/42 split through the same procedure.\n"]
+    rows = []
+    for T, d in m[m.split == "resampling"].groupby("T"):
+        rows.append({"T": T, "new MAE": ci(d, "reg_new_MAE"), "baseline MAE (v1 PLSR)": ci(d, "reg_base_MAE"),
+                     "new RMSE": ci(d, "reg_new_RMSE"), "baseline RMSE": ci(d, "reg_base_RMSE"),
+                     "90% interval coverage": ci(d, "reg_new_coverage90", 100, "{:.0f}") + " %",
+                     "baseline PR-AUC (alarm score)": ci(d, "clf_base_PR_AUC", 1, "{:.2f}"),
+                     "classifier PR-AUC": ci(d, "clf_new_PR_AUC", 1, "{:.2f}")})
+    t13 = pd.DataFrame(rows)
+    t13.to_csv(tabs / "table13_v2_resampling.csv", index=False)
+    c = pd.read_csv(v2 / "comparisons.csv")
+    c = c[c.split == "resampling"].copy()
+    c["estimate (95% CI)"] = [f"{e:+.3g} [{a:+.3g}, {b:+.3g}]" for e, a, b in zip(c.estimate, c.lo95, c.hi95)]
+    t13b = c.pivot(index="T", columns="difference_new_minus_baseline", values="estimate (95% CI)").reset_index()
+    t13b.to_csv(tabs / "table13b_v2_new_vs_baseline.csv", index=False)
+    out += ["## Table 13 - Life prediction and alarm ranking by horizon (resampling)\n",
+            "New = candidate pipeline chosen by inner CV (Gaussian process / ridge / PLSR on Sets C-D); baseline = v1 PLSR on Set C "
+            "through the identical procedure.\n", md_table(t13), "",
+            "Paired differences (new - baseline; negative MAE/RMSE and positive PR/ROC favour new):\n", md_table(t13b), ""]
+
+    s = pd.read_csv(v2 / "termination_summary.csv")
+    keys = [("false_alarm_rate", 100, "{:.0f}"), ("missed_failure_rate", 100, "{:.0f}"), ("decided_early", 100, "{:.0f}"),
+            ("test_time_saved", 100, "{:.0f}"), ("avg_test_cycles", 1, "{:.0f}")]
+    rows = []
+    for (pol, a), d in s[s.split == "resampling"].groupby(["policy", "alpha"]):
+        rows.append({"policy": pol, "checkpoints": d.checkpoints.iloc[0], "alpha": a,
+                     **{k: ci(d, k, sc, f) + (" %" if sc == 100 else "") for k, sc, f in keys}})
+    t14 = pd.DataFrame(rows)
+    t14.to_csv(tabs / "table14_v2_termination.csv", index=False)
+    f = pd.read_csv(v2 / "forced_alarms.csv")
+    f = f[(f.split == "resampling") & f.policy.isin(["forced_alarm_50", "forced_alarm_100"])].copy()
+    f["false_alarm_rate"] = [f"{100 * v:.0f} [{100 * a:.0f}, {100 * b:.0f}] %" for v, a, b in zip(f.false_alarm_rate, f.fa_lo95, f.fa_hi95)]
+    f["missed_failure_rate"] = [f"{100 * v:.0f} %" for v in f.missed_failure_rate]
+    t15 = f[["policy", "recall_target", "false_alarm_rate", "missed_failure_rate"]]
+    t15.to_csv(tabs / "table15_v2_forced_alarms.csv", index=False)
+    lk = s[(s.split == "locked") & (s.policy == "single_50") & (s.alpha == 0.1)].set_index("metric")["mean"]
+    out += ["## Table 14 - Early-failure decisions with a 'keep testing' option (adaptive test termination)\n",
+            "Conformal pass/fail sets: a cell is declared FAIL or PASS at a checkpoint only when the set is a single label; "
+            "otherwise it keeps cycling (to end of life after the last checkpoint). Test time saved is relative to "
+            "running every cell to end of life. The recommended policy (single_50, alpha 0.1) was chosen among these 15 "
+            "configurations on the same resampled predictions, so its numbers carry mild selection optimism.\n",
+            md_table(t14), "",
+            f"Locked split check, single_50 alpha 0.1: false alarms {100 * lk['false_alarm_rate']:.0f} %, missed failures "
+            f"{100 * lk['missed_failure_rate']:.0f} %, decided at cycle 50 {100 * lk['decided_early']:.0f} %, test time saved "
+            f"{100 * lk['test_time_saved']:.0f} %.\n",
+            "## Table 15 - Forced yes/no alarms (no 'keep testing' option), baseline PLSR score\n", md_table(t15), ""]
+    return out
+
+
 def early_warning_sections(res: Path, tabs: Path) -> list[str]:
     """Tables 9-12: the early-warning / interpretability study (steps 8-11)."""
     ew = res / "runs" / "early_warning"
@@ -412,6 +475,7 @@ def main():
         report += ["Local explanations:\n", md_table(lc.round(1)), ""]
 
     report += early_warning_sections(res, tabs)
+    report += v2_sections(res, tabs)
     (res / "REPORT.md").write_text("\n".join(report), encoding="utf-8")
     print(f"wrote {res / 'REPORT.md'}")
 

@@ -14,7 +14,45 @@ It uses a pipeline that is designed to prevent data leakage and is reproducible 
 performance, a feature explorer and a per-cell maintenance-report explorer. It is built from the committed results by
 `scripts/12_dashboard.py` and served from `docs/index.html` via GitHub Pages.
 
-## Key findings
+## Headline results (v2): fewer false alarms and shorter durability tests
+
+v2 re-evaluates everything with **repeated nested resampling**. All 83 MATR-1 cells are split 10 × into grouped, life-stratified
+5 folds; every cell is judged by models that never saw it. Model, features, hyperparameters, uncertainty calibration and alarm
+thresholds are all chosen by inner cross-validation on the training cells of each split. This replaces a single 42-cell test set,
+which had already been examined, with a far more reliable estimate (95 % confidence intervals from a cell bootstrap).
+
+**1. Halving false alarms with a "keep testing" option.** A forced yes/no alarm after 50 cycles has to trade false alarms against
+missed failures. Instead, each cell gets a calibrated (conformal) decision: *fail*, *pass*, or *not sure yet — keep cycling*.
+
+| Decision after 50 cycles (early failure = life ≤ 488 cycles) | False alarms on healthy cells | Missed early failures | Decided at cycle 50 | Durability-test time saved |
+|---|---|---|---|---|
+| Forced yes/no alarm (v1 approach, tuned for 90 % recall) | 23 % [15–34] | 13 % | 100 % | — |
+| **Fail / pass / keep testing (α = 0.1)** | **10 % [4–17]** | **7 % [2–13]** | 71 % | **74 % [66–80]** |
+| Fail / pass / keep testing (α = 0.05) | 7 % [3–11] | 5 % [1–12] | 60 % | 67 % [58–73] |
+
+Uncertain cells (about 30 %) simply keep cycling to end of life, so the lab still gets a definitive answer for them. Overall the
+policy cuts total test cycles by about three quarters compared with running every cell to failure (mean ≈ 700 cycles per cell).
+On the untouched BatteryML 41/42 split the same policy made **zero wrong decisions** (0 false alarms, 0 missed failures) and decided 62 % of
+cells at cycle 50.
+
+**2. More accurate cycle-life prediction.** A pipeline chosen by nested CV (mostly a Gaussian process on the engineered features;
+otherwise ridge/PLSR, including a new fixed-reference ΔQ(V) feature set, Set D) is significantly more accurate than the v1 PLSR from 5 to
+50 cycles. After 50 cycles: MAE **56 cycles [47–66]** vs 70 [57–84] (paired difference −13.5, 95 % CI −20.9 to −5.9) and RMSE 82 vs 100. Its 90 %
+prediction intervals contain the true life for 90–91 % of cells at every horizon, as designed. At 100 cycles both approaches are equal.
+
+**What did not work (reported, not hidden).**
+- **Very early warning (5–10 cycles) did not hold up.** A quick training-only check looked promising, but under nested
+  evaluation the alarms false-flag about 28–37 % of healthy cells at 83–88 % recall.
+- **A dedicated early-failure classifier did not beat ranking cells by predicted life.** The original PLSR-based score remained the
+  best alarm score (PR-AUC 0.75 vs 0.70 at 50 cycles).
+- **Checking at many checkpoints (5 → 100 cycles) compounds errors.** Stopping at the first confident call saves 95 % of test time but
+  makes 19 % wrong decisions, so it is rejected in favour of a single decision at cycle 50.
+
+The recommended policy was chosen among 15 policy/α combinations on the same resampled predictions, so its numbers carry mild
+selection optimism; the locked-split check above is the independent sanity check. Details: Tables 13–15 in
+[`results/REPORT.md`](results/REPORT.md); code: `scripts/13_nested_resampling.py`, `scripts/14_test_termination.py`.
+
+## Key findings: interpretability
 
 1. **The signal changes between cycle 20 and cycle 50.** After 20 cycles, the models rely mainly on the
    **charging protocol** (29 % of SHAP attribution), the cell's **initial resistance** (21 %) and its **temperature trend** (20 %).
@@ -31,7 +69,8 @@ performance, a feature explorer and a per-cell maintenance-report explorer. It i
    most (+19 cycles). From T = 50 onwards they can be removed at no cost (+0.2), so the degradation features alone are enough.
 4. **Early-failure alarms work from 50 cycles.** Early failure here means a cycle life of 488 or less (the lower third of training lives).
    With an alarm threshold fixed on training cells, PLSR after 50 cycles caught **10 of 11** early failures
-   with a **19 % false-alarm rate** (PR-AUC 0.79 vs 0.26 for guessing). After 20 cycles it catches all of them, but false-flags 42 % of healthy cells.
+   with a **19 % false-alarm rate** (PR-AUC 0.79 vs 0.26 for guessing). Under v2's repeated resampling the same approach averages
+   23 % false alarms; the keep-testing policy above brings this to 10 %. After 20 cycles it catches all of them, but false-flags 42 % of healthy cells.
    The charging protocol alone catches every failure but false-flags **74 %** of healthy cells, so it cannot discriminate.
 5. **Per-cell maintenance reports** say which mechanism pulled each flagged cell's predicted life down (e.g. b2c3:
    voltage/polarisation −20 %, discharge-curve shape −11 %). The false alarms are borderline cells (true life 495–561 cycles, just above
@@ -244,6 +283,12 @@ The original notebook's **MATR-1 RMSE of 103.5 reproduces exactly**, but it is n
 
 ## 11. Conclusion
 
+**v2 summary.** After 50 cycles, a calibrated fail / pass / keep-testing decision flags early-failing cells with about 10 % false
+alarms and 7 % missed failures (down from 23 % and 13 % for a forced yes/no alarm) while cutting durability-test time by about
+three quarters, and cycle-life error falls to 56 cycles MAE. Very early (5–10 cycle) warning was tested rigorously and was not
+reliable enough on this dataset.
+
+
 From the first **50 cycles**, without waiting for visible capacity fade, it is possible to identify cells headed for early failure
 (10 of 11 caught with a 19 % false-alarm rate) and to say *why* each was flagged. The most reliable early indicators are
 **drift and variability of the discharge-voltage curve**, followed by Severson-type **ΔQ(V) curve-shape change**. These signals:
@@ -260,6 +305,8 @@ temperature trend**: information about how the cell is used, not about how it is
 ## 12. Limitations and future work
 
 **Limitations.**
+* v2 conformal guarantees hold per decision point and assume new cells resemble MATR-1 cells (exchangeability); a new
+  chemistry, protocol range or lab would need recalibration.
 * Small sample: 41 training cells, 42 test cells, 11 test early failures. Alarm metrics have wide uncertainty; one cell changes recall by 0.09.
 * One chemistry, form factor and lab (LFP/graphite 18650, fixed 4C discharge): no generalisation claim is made.
 * Observational data: indicators are associations, and the mechanism labels are hypotheses.
@@ -286,14 +333,14 @@ pip install -r requirements.txt
    ```bash
    batteryml download MATR ./data/raw && batteryml preprocess MATR ./data/raw ./data/processed/MATR
    ```
-2. **Run the full study** (about 30 min on a laptop CPU):
+2. **Run the full study** (about 45 min on a laptop CPU):
    ```bash
    python run_all.py --data-dir ./data/processed/MATR
    ```
 3. **Without the raw data**, rerun the models, SHAP, early warning and report from the committed features and protocol table.
    Steps 0–3, 5 and 8 need the data; these steps don't:
    ```bash
-   python scripts/04_run_experiments.py && python scripts/06_shap.py && python scripts/09_horizon_shap.py && python scripts/10_group_ablation.py && python scripts/11_early_warning.py && python scripts/07_make_report.py
+   python scripts/04_run_experiments.py && python scripts/06_shap.py && python scripts/09_horizon_shap.py && python scripts/10_group_ablation.py && python scripts/11_early_warning.py && python scripts/13_nested_resampling.py && python scripts/14_test_termination.py && python scripts/07_make_report.py && python scripts/12_dashboard.py
    ```
 4. **Kaggle:** run `notebooks/kaggle_run_all.ipynb` with a dataset containing the processed `MATR_*.pkl` attached.
 5. **Tests:**
@@ -316,6 +363,8 @@ pip install -r requirements.txt
 | 10 | `10_group_ablation.py` | drop-group / only-group retraining |
 | 11 | `11_early_warning.py` | early-failure alarms, protocol analysis, maintenance reports |
 | 7 | `07_make_report.py` | `results/REPORT.md`, tables, figures |
+| 13 | `13_nested_resampling.py` | v2: repeated nested resampling, life intervals, alarms, conformal pass/fail sets |
+| 14 | `14_test_termination.py` | v2: fail / pass / keep-testing policies, test time saved |
 | 12 | `12_dashboard.py` | interactive Plotly dashboard `docs/index.html` (GitHub Pages) |
 
 Committed results were produced with Python 3.12 and the pinned `requirements.txt` (CPU, Windows 11). Seeds and folds are fixed in
