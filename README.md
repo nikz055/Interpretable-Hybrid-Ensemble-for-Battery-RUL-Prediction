@@ -21,6 +21,29 @@ Identifies lithium-ion cells likely to fail early from their first 50 cycles, re
 | Test time saved | 74% | — |
 | Life prediction error (MAE) | 56 cycles | 70 cycles |
 
+## Comparison with published results
+
+Same 42 test cells in every row (Severson primary test set, outlier excluded). RMSE in cycles, lower is better.
+
+| Source | Model | Cycles used | RMSE |
+|---|---|---|---|
+| Attia et al. 2021 | CNN | 100 | 72 |
+| Severson et al. 2019 | Discharge model | 100 | 86 |
+| BatteryML | PCR | 100 | 90 |
+| **This work** | **Early-warning pipeline** | **50** | **93** |
+| Attia et al. 2021 | PLSR | 100 | 100 |
+| BatteryML | PLSR | 100 | 104 |
+| **This work** | **Early-warning pipeline** | **100** | **115** |
+| BatteryML | LSTM | 100 | 119 |
+| Severson et al. 2019 | Variance model | 100 | 138 |
+| Baseline | Training-set mean | — | 399 |
+
+Using half the cycles, this work is competitive with published 100-cycle models. The best published models remain more
+accurate at 100 cycles.
+
+Sources: [Severson et al., Nature Energy 2019](https://doi.org/10.1038/s41560-019-0356-8) and [Attia et al. 2021](https://arxiv.org/abs/2101.01885) (values from Attia et al., Table II),
+[BatteryML](https://github.com/microsoft/BatteryML) (published benchmark table). Label definitions differ slightly between sources.
+
 ## Approach
 
 - **Data pipeline:** extracts capacity, voltage, resistance and temperature features from cycles 1–50.
